@@ -70,6 +70,8 @@ private:
     uint8_t dac_write_idx_ = 0;
     uint8_t dac_read_idx_ = 0;
     uint8_t dac_cur_r_ = 0, dac_cur_g_ = 0;
+    uint8_t dac6_[256 * 3]{};      // raw 6-bit DAC contents, for port 0x3C9 reads
+    uint8_t dac_read_state_ = 0;   // 0=R, 1=G, 2=B for reads
 
     // VESA bank (granularity 64KB)
     uint8_t vesa_bank_ = 0;

@@ -21,6 +21,83 @@ extern const LiftedModule kLifted_chrsys;
 #include <cstring>
 #include <execinfo.h>
 
+
+// Debug: GENESIS_INPUT="ms:Key;ms:Key;..." injects key presses (SDL key names, e.g.
+// Return, Down, Escape, Space) at the given milliseconds after startup. Also accepts
+// "ms:click@x,y" (640x480 game coordinates, left button). Used for headless testing.
+#include <sstream>
+#include <vector>
+namespace {
+struct ScriptedInput { uint32_t at; std::string what; };
+std::vector<ScriptedInput> g_script;
+size_t g_script_pos = 0;
+uint32_t g_script_start = 0;
+
+// Inserts a release event 150 ms after a press, keeping the script sorted by time.
+void schedule_release(uint32_t now, const std::string& what) {
+    ScriptedInput r{now + 150, what};
+    auto it = g_script.begin() + static_cast<long>(g_script_pos);
+    while (it != g_script.end() && it->at <= r.at) ++it;
+    g_script.insert(it, r);
+}
+
+Uint32 scripted_input_tick(Uint32 interval, void*) {
+    uint32_t now = SDL_GetTicks() - g_script_start;
+    while (g_script_pos < g_script.size() && g_script[g_script_pos].at <= now) {
+        const std::string& w = g_script[g_script_pos++].what;
+        SDL_Event ev{};
+        if (w.rfind("click@", 0) == 0) {
+            int x = 0, y = 0;
+            std::sscanf(w.c_str() + 6, "%d,%d", &x, &y);
+            ev.type = SDL_MOUSEMOTION;
+            ev.motion.x = x * 2; ev.motion.y = y * 2;  // window is 2x the game size
+            SDL_PushEvent(&ev);
+            ev = SDL_Event{};
+            ev.type = SDL_MOUSEBUTTONDOWN;
+            ev.button.button = SDL_BUTTON_LEFT;
+            ev.button.x = x * 2; ev.button.y = y * 2;
+            SDL_PushEvent(&ev);
+            schedule_release(now, "~mouseup");
+            continue;
+        }
+        if (w == "~mouseup") {
+            ev.type = SDL_MOUSEBUTTONUP;
+            ev.button.button = SDL_BUTTON_LEFT;
+            SDL_PushEvent(&ev);
+            continue;
+        }
+        bool release = w.rfind("~up:", 0) == 0;
+        std::string name = release ? w.substr(4) : w;
+        SDL_Keycode k = SDL_GetKeyFromName(name.c_str());
+        if (k == SDLK_UNKNOWN) { std::fprintf(stderr, "[INPUT] unknown key '%s'\n", name.c_str()); continue; }
+        ev.type = release ? SDL_KEYUP : SDL_KEYDOWN;
+        ev.key.keysym.sym = k;
+        ev.key.keysym.scancode = SDL_GetScancodeFromKey(k);
+        ev.key.state = release ? SDL_RELEASED : SDL_PRESSED;
+        SDL_PushEvent(&ev);
+        if (!release) {
+            schedule_release(now, "~up:" + name);
+            std::fprintf(stderr, "[INPUT] t=%u key %s\n", now, name.c_str());
+        }
+    }
+    return g_script_pos < g_script.size() ? interval : 0;
+}
+
+void start_scripted_input() {
+    const char* spec = std::getenv("GENESIS_INPUT");
+    if (!spec) return;
+    std::stringstream ss(spec);
+    std::string item;
+    while (std::getline(ss, item, ';')) {
+        auto colon = item.find(':');
+        if (colon == std::string::npos) continue;
+        g_script.push_back({static_cast<uint32_t>(std::stoul(item.substr(0, colon))), item.substr(colon + 1)});
+    }
+    g_script_start = SDL_GetTicks();
+    SDL_AddTimer(20, scripted_input_tick, nullptr);
+}
+}  // namespace
+
 static gen::Machine* g_machine = nullptr;
 
 static void crash_handler(int sig) {
@@ -87,6 +164,7 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "[ERR] SDL_Init failed: %s\n", SDL_GetError());
     }
 
+    start_scripted_input();
     gen::Machine machine;
     g_machine = &machine;
     machine.dos->set_base_dir(data_dir);

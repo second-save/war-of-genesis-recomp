@@ -107,8 +107,14 @@ uint8_t VideoSubsystem::read_port(uint16_t port) {
         return dac_write_idx_;
     case 0x3C7:
         return dac_state_;
-    case 0x3C9: // Read DAC data
-        return 0;
+    case 0x3C9: { // Read DAC data: returns R, G, B (6-bit) then auto-increments the read index
+        uint8_t v = dac6_[dac_read_idx_ * 3 + dac_read_state_];
+        if (++dac_read_state_ == 3) {
+            dac_read_state_ = 0;
+            dac_read_idx_++;
+        }
+        return v;
+    }
     default:
         return 0xFF;
     }
@@ -122,9 +128,22 @@ void VideoSubsystem::write_port(uint16_t port, uint8_t val) {
         break;
     case 0x3C7: // DAC Read Address Index
         dac_read_idx_ = val;
-        dac_state_ = 0;
+        dac_read_state_ = 0;
         break;
     case 0x3C9: // DAC Data Register (6-bit RGB)
+        if (std::getenv("GENESIS_TRACE_DAC")) {
+            // Summarise each run of DAC writes: start index, length, non-zero count.
+            static uint32_t run_len = 0, run_nz = 0, run_start_idx = 0, last_t = 0, uploads = 0;
+            uint32_t now = SDL_GetTicks();
+            if (run_len && (now - last_t > 5 || run_len >= 768)) {
+                if (++uploads <= 400 && (run_nz || uploads % 16 == 1))
+                    std::fprintf(stderr, "[DAC] t=%u upload#%u start=%u len=%u nonzero=%u\n", last_t, uploads, run_start_idx, run_len, run_nz);
+                run_len = run_nz = 0;
+            }
+            if (run_len == 0) run_start_idx = dac_write_idx_;
+            ++run_len; if (val) ++run_nz; last_t = now;
+        }
+        dac6_[dac_write_idx_ * 3 + dac_state_] = val & 0x3F;
         if (dac_state_ == 0) {
             dac_cur_r_ = (val & 0x3F) * 255 / 63;
             dac_state_ = 1;
@@ -175,6 +194,9 @@ void VideoSubsystem::handle_int10() {
                 uint8_t g = *machine_.ptr(table_seg, table_off + i * 3 + 1);
                 uint8_t b = *machine_.ptr(table_seg, table_off + i * 3 + 2);
                 uint8_t idx = static_cast<uint8_t>(first_idx + i);
+                dac6_[idx * 3 + 0] = r & 0x3F;
+                dac6_[idx * 3 + 1] = g & 0x3F;
+                dac6_[idx * 3 + 2] = b & 0x3F;
 
                 r = (r & 0x3F) * 255 / 63;
                 g = (g & 0x3F) * 255 / 63;
@@ -307,6 +329,15 @@ void VideoSubsystem::present_frame() {
                 std::snprintf(path, sizeof(path), "%s/shot_%04d.bmp", shot_dir, shot_idx++);
                 SDL_SaveBMP(s, path);
                 SDL_FreeSurface(s);
+                // Raw dump: palette (256 x ARGB32) followed by the indexed framebuffer.
+                std::snprintf(path, sizeof(path), "%s/shot_%04d.raw", shot_dir, shot_idx - 1);
+                if (FILE* f = std::fopen(path, "wb")) {
+                    std::fwrite(palette_, sizeof(palette_), 1, f);
+                    const uint8_t* idx = (mode_ == VideoMode::Vesa_640x480) ? vesa_vram_.data()
+                                                                            : machine_.ptr(0xA000, 0);
+                    std::fwrite(idx, 1, static_cast<size_t>(screen_width_) * screen_height_, f);
+                    std::fclose(f);
+                }
             }
         }
     }
@@ -333,6 +364,9 @@ void VideoSubsystem::set_palette_rgb(const uint8_t* rgb768, bool is_6bit) {
             b = static_cast<uint8_t>((b * 255) / 63);
         }
         palette_[i] = 0xFF000000 | (r << 16) | (g << 8) | b;
+        dac6_[i * 3 + 0] = static_cast<uint8_t>(r >> 2);
+        dac6_[i * 3 + 1] = static_cast<uint8_t>(g >> 2);
+        dac6_[i * 3 + 2] = static_cast<uint8_t>(b >> 2);
     }
 }
 
