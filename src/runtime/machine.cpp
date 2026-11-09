@@ -1,0 +1,504 @@
+// Machine implementation: hardware dispatch, interrupt routing, and MZ loading.
+#include "machine.h"
+#include "subsystems/video.h"
+#include "subsystems/audio.h"
+#include "subsystems/input.h"
+#include "subsystems/dos.h"
+#include "memory.h"
+#include "modules_registry.h"
+
+#include <iostream>
+#include <fstream>
+#include <cstring>
+#include <SDL.h>
+
+namespace gen {
+
+Machine::Machine() {
+    ram = std::make_unique<uint8_t[]>(kRamSize);
+    std::memset(ram.get(), 0, kRamSize);
+
+    video = std::make_unique<VideoSubsystem>(*this);
+    audio = std::make_unique<AudioSubsystem>(*this);
+    input = std::make_unique<InputSubsystem>(*this);
+    dos = std::make_unique<DosSubsystem>(*this);
+
+    // Register synthetic XMS driver entry point at 0x0070:0x0010
+    register_synthetic_function(0x0070, 0x0010, [](Machine& m) {
+        m.dos->handle_xms_call();
+        (void)pop16(m);      // Return IP
+        m.cpu.cs = pop16(m); // Return CS
+    });
+    ram[phys_addr(0x0070, 0x0010)] = 0xCB; // RETF opcode
+}
+
+void Machine::register_synthetic_function(uint16_t seg, uint16_t off, FunctionPointer fn) {
+    uint32_t key = (static_cast<uint32_t>(seg) << 16) | off;
+    synthetic_dispatch_table_[key] = fn;
+    uint32_t lin = (static_cast<uint32_t>(seg) << 4) + off;
+    synthetic_dispatch_table_[lin] = fn;
+}
+
+Machine::~Machine() = default;
+
+void Machine::register_module(const LiftedModule* mod) {
+    if (!mod) return;
+    current_module_ = mod;
+    dispatch_table_.clear();
+    linear_dispatch_table_.clear();
+    for (size_t i = 0; i < mod->num_functions; ++i) {
+        const auto& fn = mod->functions[i];
+        // Register with relative segment
+        uint32_t key_rel = (static_cast<uint32_t>(fn.seg) << 16) | fn.off;
+        dispatch_table_[key_rel] = fn.fn;
+
+        // Register with relocated segment
+        uint32_t key_abs = (static_cast<uint32_t>(fn.seg + mod->load_seg) << 16) | fn.off;
+        dispatch_table_[key_abs] = fn.fn;
+
+        // Register by linear address
+        uint32_t lin_rel = (static_cast<uint32_t>(fn.seg) << 4) + fn.off;
+        linear_dispatch_table_[lin_rel] = fn.fn;
+
+        uint32_t lin_abs = (static_cast<uint32_t>(fn.seg + mod->load_seg) << 4) + fn.off;
+        linear_dispatch_table_[lin_abs] = fn.fn;
+    }
+}
+
+FunctionPointer Machine::resolve_function(uint16_t seg, uint16_t off) const {
+    uint32_t key = (static_cast<uint32_t>(seg) << 16) | off;
+    auto it = dispatch_table_.find(key);
+    if (it != dispatch_table_.end()) {
+        return it->second;
+    }
+    // Fall back to linear address lookup
+    uint32_t lin = (static_cast<uint32_t>(seg) << 4) + off;
+    auto it_lin = linear_dispatch_table_.find(lin);
+    if (it_lin != linear_dispatch_table_.end()) {
+        return it_lin->second;
+    }
+    // Check synthetic dispatch table (e.g. XMS driver entry point)
+    auto it_syn = synthetic_dispatch_table_.find(key);
+    if (it_syn != synthetic_dispatch_table_.end()) {
+        return it_syn->second;
+    }
+    auto it_syn_lin = synthetic_dispatch_table_.find(lin);
+    if (it_syn_lin != synthetic_dispatch_table_.end()) {
+        return it_syn_lin->second;
+    }
+    return nullptr;
+}
+
+void Machine::call_near(uint16_t cs, uint16_t ip) {
+    FunctionPointer fn = resolve_function(cs, ip);
+    if (fn) {
+        fn(*this);
+        return;
+    }
+
+    const uint8_t* code = ptr(cs, ip);
+    if (code[0] == 0x55 && code[1] == 0xCD) {
+        uint8_t int_no = code[2];
+        interrupt(int_no, cs, ip);
+        (void)pop16(*this);
+        return;
+    }
+    if (code[0] == 0xC3) { // RET
+        (void)pop16(*this);
+        return;
+    }
+
+    unimplemented(cs, ip, "call_near (unresolved target)");
+    (void)pop16(*this);
+}
+
+void Machine::call_far(uint16_t cs, uint16_t ip) {
+    FunctionPointer fn = resolve_function(cs, ip);
+    if (fn) {
+        fn(*this);
+        return;
+    }
+
+    const uint8_t* code = ptr(cs, ip);
+    // Borland int86/int86x stub: 55 CD <int_no> ...
+    if (code[0] == 0x55 && code[1] == 0xCD) {
+        uint8_t int_no = code[2];
+        interrupt(int_no, cs, ip);
+        (void)pop16(*this);
+        cpu.cs = pop16(*this);
+        return;
+    }
+    // Direct INT + RETF/IRET: CD <int_no> CB/CF
+    if (code[0] == 0xCD) {
+        uint8_t int_no = code[1];
+        interrupt(int_no, cs, ip);
+        (void)pop16(*this);
+        cpu.cs = pop16(*this);
+        return;
+    }
+    // RETF (0xCB)
+    if (code[0] == 0xCB) {
+        (void)pop16(*this);
+        cpu.cs = pop16(*this);
+        return;
+    }
+
+    unimplemented(cs, ip, "call_far (unresolved target)");
+    (void)pop16(*this);
+    cpu.cs = pop16(*this);
+}
+
+void Machine::invalid_code(uint16_t seg, uint16_t off) {
+    std::fprintf(stderr, "[FATAL] Execution jumped to invalid code at %04X:%04X\n", seg, off);
+    running = false;
+}
+
+void Machine::unimplemented(uint16_t seg, uint16_t off, const char* msg) {
+    static int warn_count = 0;
+    if (warn_count++ < 25) {
+        uint16_t ret_ip = *reinterpret_cast<const uint16_t*>(ptr(cpu.ss, cpu.sp.w));
+        uint16_t ret_cs = *reinterpret_cast<const uint16_t*>(ptr(cpu.ss, cpu.sp.w + 2));
+        std::fprintf(stderr, "[WARN] Unimplemented at %04X:%04X (called from %04X:%04X, sp=%04X): %s\n",
+                     seg, off, ret_cs, ret_ip, cpu.sp.w, msg);
+    }
+}
+
+void Machine::fpu_emulated(uint8_t int_no, uint16_t seg, uint16_t off, const char* msg) {
+    // Borland FPU emulator trap (INT 34h..3Dh)
+    (void)int_no; (void)seg; (void)off; (void)msg;
+}
+
+uint8_t Machine::in8(uint16_t port) {
+    if (port == 0x60) {
+        return input->read_port_60();
+    }
+    if (port == 0x388 || port == 0x389 || (port >= 0x220 && port <= 0x22F)) {
+        return audio->read_port(port);
+    }
+    if (port >= 0x3C0 && port <= 0x3DA) {
+        return video->read_port(port);
+    }
+    if (port == 0x40 || port == 0x42) {
+        // PIT Timer counter
+        tick_counter += 10;
+        return static_cast<uint8_t>(tick_counter);
+    }
+    return 0xFF;
+}
+
+uint16_t Machine::in16(uint16_t port) {
+    uint8_t l = in8(port);
+    uint8_t h = in8(port + 1);
+    return static_cast<uint16_t>(l | (static_cast<uint16_t>(h) << 8));
+}
+
+uint32_t Machine::in32(uint16_t port) {
+    uint16_t l = in16(port);
+    uint16_t h = in16(port + 2);
+    return static_cast<uint32_t>(l | (static_cast<uint32_t>(h) << 16));
+}
+
+void Machine::out8(uint16_t port, uint8_t val) {
+    if (port == 0x388 || port == 0x389 || (port >= 0x220 && port <= 0x22F)) {
+        audio->write_port(port, val);
+        return;
+    }
+    if (port >= 0x3C0 && port <= 0x3DA) {
+        video->write_port(port, val);
+        return;
+    }
+}
+
+void Machine::out16(uint16_t port, uint16_t val) {
+    out8(port, static_cast<uint8_t>(val));
+    out8(port + 1, static_cast<uint8_t>(val >> 8));
+}
+
+void Machine::out32(uint16_t port, uint32_t val) {
+    out16(port, static_cast<uint16_t>(val));
+    out16(port + 2, static_cast<uint16_t>(val >> 16));
+}
+
+void Machine::interrupt(uint8_t int_no, uint16_t seg, uint16_t off) {
+    switch (int_no) {
+    case 0x10:
+        video->handle_int10();
+        break;
+    case 0x11: // BIOS Equipment List
+        cpu.ax.w = 0x0023; // Math coprocessor present, 80x25 color, 1 diskette
+        break;
+    case 0x16:
+        input->handle_int16();
+        break;
+    case 0x1A: // Time-of-day BIOS services
+        if (cpu.ax.b.h == 0x00) { // Get system clock ticks
+            uint32_t ticks = SDL_GetTicks() * 182 / 10000;
+            *reinterpret_cast<uint32_t*>(ptr(0x0040, 0x006C)) = ticks;
+            cpu.cx.w = static_cast<uint16_t>(ticks >> 16);
+            cpu.dx.w = static_cast<uint16_t>(ticks & 0xFFFF);
+            cpu.ax.b.l = 0; // Midnight flag
+        }
+        break;
+    case 0x21:
+        dos->handle_int21();
+        break;
+    case 0x2F:
+        dos->handle_int2f();
+        break;
+    case 0x33:
+        input->handle_int33();
+        break;
+    default:
+        std::fprintf(stderr, "[INT] Unhandled interrupt INT %02Xh from %04X:%04X (AX=%04X)\n",
+                     int_no, seg, off, cpu.ax.w);
+        break;
+    }
+}
+
+void Machine::frame_sync() {
+    input->pump_events();
+    if (!running) {
+        throw ProcessTerminated{0};
+    }
+    video->present_frame();
+
+    // Trigger timer interrupt (INT 08h) for music & animation if hooked
+    uint16_t timer_off = *reinterpret_cast<const uint16_t*>(&ram[0x08 * 4]);
+    uint16_t timer_seg = *reinterpret_cast<const uint16_t*>(&ram[0x08 * 4 + 2]);
+    if (timer_seg != 0 || timer_off != 0) {
+        FunctionPointer fn = resolve_function(timer_seg, timer_off);
+        if (fn) {
+            fn(*this);
+        }
+    }
+
+    // Trigger user timer interrupt (INT 1Ch)
+    uint16_t u_timer_off = *reinterpret_cast<const uint16_t*>(&ram[0x1C * 4]);
+    uint16_t u_timer_seg = *reinterpret_cast<const uint16_t*>(&ram[0x1C * 4 + 2]);
+    if (u_timer_seg != 0 || u_timer_off != 0) {
+        FunctionPointer fn = resolve_function(u_timer_seg, u_timer_off);
+        if (fn) {
+            fn(*this);
+        }
+    }
+
+    uint32_t now = SDL_GetTicks();
+    uint32_t elapsed = now - last_tick_time_;
+    if (elapsed < 16) { // ~60 FPS cap
+        SDL_Delay(16 - elapsed);
+        now = SDL_GetTicks();
+    }
+    last_tick_time_ = now;
+    uint32_t dos_ticks = now * 182 / 10000;
+    *reinterpret_cast<uint32_t*>(ptr(0x0040, 0x006C)) = dos_ticks;
+}
+
+void Machine::poll_tick() {
+    tick_counter++;
+    if ((tick_counter & 0x003F) == 0) {
+        uint32_t now = SDL_GetTicks();
+        uint32_t dos_ticks = now * 182 / 10000;
+        *reinterpret_cast<uint32_t*>(ptr(0x0040, 0x006C)) = dos_ticks;
+        if (now - last_tick_time_ >= 16) {
+            frame_sync();
+        }
+    }
+}
+
+void Machine::idle() {
+    frame_sync();
+    SDL_Delay(1);
+}
+
+#pragma pack(push, 1)
+struct MzHeaderRaw {
+    char sig[2];
+    uint16_t last_page;
+    uint16_t n_pages;
+    uint16_t n_reloc;
+    uint16_t hdr_paras;
+    uint16_t min_alloc;
+    uint16_t max_alloc;
+    uint16_t init_ss;
+    uint16_t init_sp;
+    uint16_t csum;
+    uint16_t init_ip;
+    uint16_t init_cs;
+    uint16_t reloc_off;
+    uint16_t ovno;
+};
+#pragma pack(pop)
+
+bool Machine::load_mz(const std::string& path, uint16_t load_seg, const std::string& cmd_line) {
+    std::ifstream file(path, std::ios::binary);
+    if (!file.is_open()) {
+        std::fprintf(stderr, "[ERR] Failed to open MZ executable: %s\n", path.c_str());
+        return false;
+    }
+
+    MzHeaderRaw hdr{};
+    file.read(reinterpret_cast<char*>(&hdr), sizeof(hdr));
+    if (hdr.sig[0] != 'M' || hdr.sig[1] != 'Z') {
+        std::fprintf(stderr, "[ERR] Invalid MZ signature in %s\n", path.c_str());
+        return false;
+    }
+
+    uint32_t file_size = (hdr.n_pages - 1) * 512 + (hdr.last_page ? hdr.last_page : 512);
+    uint32_t image_size = file_size - (hdr.hdr_paras * 16);
+
+    // Load executable image into RAM at load_seg
+    uint32_t load_base = static_cast<uint32_t>(load_seg) << 4;
+    file.seekg(hdr.hdr_paras * 16);
+    file.read(reinterpret_cast<char*>(&ram[load_base]), image_size);
+
+    // Apply relocations
+    file.seekg(hdr.reloc_off);
+    for (uint16_t i = 0; i < hdr.n_reloc; ++i) {
+        uint16_t r_off = 0, r_seg = 0;
+        file.read(reinterpret_cast<char*>(&r_off), 2);
+        file.read(reinterpret_cast<char*>(&r_seg), 2);
+
+        uint32_t target_addr = phys_addr(r_seg + load_seg, r_off);
+        if (target_addr + 1 < kRamSize) {
+            uint16_t val;
+            std::memcpy(&val, &ram[target_addr], 2);
+            val = static_cast<uint16_t>(val + load_seg);
+            std::memcpy(&ram[target_addr], &val, 2);
+        }
+    }
+
+    // Set up Program Segment Prefix (PSP) at load_seg - 0x10
+    uint16_t psp_seg = static_cast<uint16_t>(load_seg - 0x10);
+    uint32_t psp_base = static_cast<uint32_t>(psp_seg) << 4;
+    std::memset(&ram[psp_base], 0, 0x100);
+
+    // INT 20h exit instruction at PSP:0
+    ram[psp_base + 0] = 0xCD;
+    ram[psp_base + 1] = 0x20;
+    // Top of memory paragraph
+    *reinterpret_cast<uint16_t*>(&ram[psp_base + 2]) = 0x9FFF;
+
+    // Set up Environment Block at psp_seg - 0x20
+    uint16_t env_seg = static_cast<uint16_t>(psp_seg - 0x20);
+    uint32_t env_base = static_cast<uint32_t>(env_seg) << 4;
+    std::memset(&ram[env_base], 0, 0x200);
+
+    std::filesystem::path p(path);
+    std::string exe_filename = p.filename().string();
+    for (char& ch : exe_filename) ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+    std::string full_dos_path = "C:\\" + exe_filename;
+
+    uint32_t epos = env_base;
+    auto write_env_str = [&](const std::string& str) {
+        std::memcpy(&ram[epos], str.c_str(), str.size() + 1);
+        epos += static_cast<uint32_t>(str.size() + 1);
+    };
+    write_env_str("PATH=C:\\");
+    write_env_str("PROMPT=$P$G");
+    ram[epos++] = 0; // Double null byte terminating environment strings
+
+    // 16-bit word count = 1 (DOS 3.0+ program name)
+    *reinterpret_cast<uint16_t*>(&ram[epos]) = 1;
+    epos += 2;
+
+    // Program name
+    std::memcpy(&ram[epos], full_dos_path.c_str(), full_dos_path.size() + 1);
+
+    // Environment block segment in PSP:2Ch
+    *reinterpret_cast<uint16_t*>(&ram[psp_base + 0x2C]) = env_seg;
+
+    // Command line in PSP:80h
+    uint8_t cmd_len = static_cast<uint8_t>(cmd_line.size());
+    ram[psp_base + 0x80] = cmd_len;
+    for (size_t i = 0; i < cmd_line.size() && i < 126; ++i) {
+        ram[psp_base + 0x81 + i] = static_cast<uint8_t>(cmd_line[i]);
+    }
+    ram[psp_base + 0x81 + cmd_len] = '\r';
+
+    // Initialize CPU registers
+    cpu.cs = static_cast<uint16_t>(hdr.init_cs + load_seg);
+    cpu.ip = hdr.init_ip;
+    cpu.ss = static_cast<uint16_t>(hdr.init_ss + load_seg);
+    cpu.sp.w = hdr.init_sp;
+    cpu.ds = psp_seg;
+    cpu.es = psp_seg;
+    cpu.ax.w = cpu.bx.w = cpu.cx.w = cpu.dx.w = 0;
+    cpu.si.w = cpu.di.w = cpu.bp.w = 0;
+    cpu.ifl = 1;
+
+    return true;
+}
+
+int Machine::run_module(const LiftedModule* mod, const std::string& cmd_line) {
+    if (!mod) return -1;
+    register_module(mod);
+
+    // Find module executable file in data path
+    std::filesystem::path exe_path = dos->resolve_path(mod->filename);
+    if (!load_mz(exe_path.string(), mod->load_seg, cmd_line)) {
+        return -1;
+    }
+
+    // Execute starting from CS:IP
+    running = true;
+    exit_code = 0;
+
+    FunctionPointer entry = resolve_function(cpu.cs, cpu.ip);
+    if (!entry) {
+        std::fprintf(stderr, "[FATAL] Entry point not found for module %s at %04X:%04X\n",
+                     mod->name, cpu.cs, cpu.ip);
+        return -1;
+    }
+
+    try {
+        entry(*this);
+    } catch (const ProcessTerminated& pt) {
+        exit_code = pt.exit_code;
+    }
+    return exit_code;
+}
+
+const LiftedModule* find_module_by_name(const std::string& name) {
+    std::string lower;
+    for (char ch : name) lower += static_cast<char>(std::tolower(ch));
+    if (lower.find("main") != std::string::npos) return &kLifted_main;
+    if (lower.find("chp") != std::string::npos) return &kLifted_chp;
+    if (lower.find("pack") != std::string::npos) return &kLifted_pack;
+    if (lower.find("chrsys") != std::string::npos) return &kLifted_chrsys;
+    return nullptr;
+}
+
+int Machine::exec_module(const std::string& prog_path, const std::string& cmd_line) {
+    const LiftedModule* child_mod = find_module_by_name(prog_path);
+    if (!child_mod) {
+        std::fprintf(stderr, "[DOS] EXEC failed: unknown module %s\n", prog_path.c_str());
+        cpu.cf = 1;
+        cpu.ax.w = 2; // File not found
+        return -1;
+    }
+
+    std::cout << "[DOS] EXEC starting child module: " << child_mod->name << " with args: '" << cmd_line << "'\n";
+    const LiftedModule* parent_mod = current_module_;
+    // Snapshot conventional RAM (from 0x00000 up to 0xA0000, 640KB)
+    std::vector<uint8_t> saved_ram(ram.get(), ram.get() + 0xA0000);
+    Cpu saved_cpu = cpu;
+    bool was_running = running;
+    uint16_t saved_heap_seg = dos->heap_next_seg();
+
+    int child_exit = run_module(child_mod, cmd_line);
+
+    // Restore conventional RAM, heap pointer, and parent module dispatch table
+    std::memcpy(ram.get(), saved_ram.data(), saved_ram.size());
+    dos->set_heap_next_seg(saved_heap_seg);
+    if (parent_mod) {
+        register_module(parent_mod);
+    }
+    cpu = saved_cpu;
+    running = was_running;
+    cpu.cf = 0;
+    cpu.ax.b.l = static_cast<uint8_t>(child_exit);
+    cpu.ax.b.h = 0;
+    return child_exit;
+}
+
+}  // namespace gen
