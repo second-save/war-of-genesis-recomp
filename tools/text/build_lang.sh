@@ -9,4 +9,6 @@ PY=${PYTHON:-python3}
 $PY tools/text/visual.py build "$GAME" "$T" "$O"
 $PY tools/text/prologue.py build "$GAME" "$T" "$O"
 $PY tools/text/talk.py build "$GAME" "$T" "$O"
+$PY tools/text/battle.py build "$GAME" "$T" "$O"
+cat "$O/TEXT_TAK.TXT" "$O/TEXT_SCE.TXT" > "$O/TEXT.TXT"
 $PY tools/text/strings.py build "$T" "$O"

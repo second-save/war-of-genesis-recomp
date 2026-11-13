@@ -81,6 +81,7 @@ original code unchanged.
 python3 tools/text/visual.py extract The-War-of-Genesis_DOS_KO work     # story dialogue
 python3 tools/text/prologue.py extract The-War-of-Genesis_DOS_KO work   # chapter prologues
 python3 tools/text/talk.py extract The-War-of-Genesis_DOS_KO work       # town talk
+python3 tools/text/battle.py extract The-War-of-Genesis_DOS_KO work     # battle scenarios
 # Build the overlay from translations/en:
 tools/text/build_lang.sh The-War-of-Genesis_DOS_KO en
 ```
@@ -92,11 +93,11 @@ naming choices (`glossary.tsv`). Town talk lines don't fit the game's 26-byte
 records, so the built files hold `@@id` markers and the text lives in
 `lang/en/TEXT.TXT`; the PACK text hook swaps them in.
 
-Status: all story dialogue, chapter prologues, town talk, NPC and character
-names, and the menus, prompts and labels in CHP, PACK and CHRSYS are
+Status: all story dialogue, chapter prologues, town talk, battle scenarios
+(briefings and battle dialogue, `tools/text/battle.py`), NPC, unit and
+character names, and the menus, prompts and labels in CHP, PACK and CHRSYS are
 translated (`tools/text/exe_strings.py` lists the program strings). Not yet:
-battle scenarios (briefings, battle dialogue), item/magic/class names, the
-title menu (TTL) and Korean text baked into images.
+item/magic names, the title menu (TTL) and Korean text baked into images.
 
 ## Debugging aids
 

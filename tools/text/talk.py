@@ -6,10 +6,11 @@ Johab text (null-terminated)}. Consecutive records with the same id are the line
 of one message (up to 13 syllables each).
 
   extract GAME_DIR WORK_DIR        -> WORK_DIR/ko/CSTLDATA/TAK.json  (unique messages, local only)
-  build   GAME_DIR TRANS_DIR OUT   -> OUT/CSTLDATA/*.TAK + OUT/TEXT.TXT
+  build   GAME_DIR TRANS_DIR OUT   -> OUT/CSTLDATA/*.TAK + OUT/TEXT_TAK.TXT
 
 English doesn't fit 26-byte records, so the rebuilt files hold "@@<id>" markers
-and the lines go to TEXT.TXT, which the native PACK text hook reads. Each English
+and the lines go to TEXT_TAK.TXT (merged into TEXT.TXT by build_lang.sh), which
+the native text hooks read. Each English
 message is word-wrapped with the game's own ASCII font metrics (NEWASCII.FNT,
 proportional as drawn by the hook) into at most as many lines as the Korean had.
 """
@@ -41,6 +42,13 @@ def messages(data: bytes):
         else:
             out.append((rid, [i], [t.decode("johab")]))
     return out
+
+
+def b36(n: int) -> str:
+    """Marker id: three base-36 digits (the runtime decodes '@@XYZ')."""
+    digits = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    assert 0 <= n < 36 ** 3
+    return digits[n // 1296] + digits[n // 36 % 36] + digits[n % 36]
 
 
 def key(lines):
@@ -111,7 +119,7 @@ def build(game: Path, trans: Path, out_dir: Path):
             wrapped += [""] * (len(idx) - len(wrapped))
             for rec, line in zip(idx, wrapped):
                 gid = (fno + 1) * 1000 + rec
-                mark = f"@@{gid}".encode("ascii") if line else b""
+                mark = f"@@{b36(gid)}".encode("ascii") if line else b""
                 field = mark + b"\0" * (27 - len(mark))
                 data[8 + rec * 30 + 3: 8 + rec * 30 + 30] = field
                 if line:
@@ -119,7 +127,7 @@ def build(game: Path, trans: Path, out_dir: Path):
         dst = out_dir / "CSTLDATA" / f.name
         dst.parent.mkdir(parents=True, exist_ok=True)
         dst.write_bytes(bytes(data))
-    (out_dir / "TEXT.TXT").write_text("\n".join(text_lines) + "\n")
+    (out_dir / "TEXT_TAK.TXT").write_text("\n".join(text_lines) + "\n")
     print(f"{len(tr)} messages translated, {len(text_lines)} lines" + (f", {overflow} too long" if overflow else ""))
 
 

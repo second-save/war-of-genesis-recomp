@@ -54,25 +54,65 @@ struct Glyph8 {
     int first = 0, last = -1;  // used columns (0 = leftmost); last < first = blank
 };
 
-// Lines that don't fit the game's fixed-size text records (town talk) are
-// replaced in the translated files by "@@<id>" markers; the text comes from
-// lang/<code>/TEXT.TXT ("id<TAB>text" per line).
-const std::string* marker_text(Machine& m, const std::string& s) {
+// Text that doesn't fit the game's fixed-size records (town talk, battle
+// dialogue) is replaced in the translated files by "@@XYZ" markers (three
+// base-36 digits, one per line); the text comes from lang/<code>/TEXT.TXT
+// ("<decimal id><TAB><text>", "\\n" = line break).
+const std::string* marker_lookup(Machine& m, const std::string& line) {
     static std::unordered_map<long, std::string> table;
     static bool loaded = false;
     if (!loaded) {
         loaded = true;
         std::ifstream f(m.dos->overlay_dir() / "TEXT.TXT");
-        std::string line;
-        while (std::getline(f, line)) {
-            size_t tab = line.find('\t');
+        std::string l;
+        while (std::getline(f, l)) {
+            size_t tab = l.find('\t');
             if (tab == std::string::npos) continue;
-            table[std::strtol(line.c_str(), nullptr, 10)] = line.substr(tab + 1);
+            std::string v;
+            for (size_t i = tab + 1; i < l.size(); ++i) {
+                if (l[i] == '\\' && i + 1 < l.size() && l[i + 1] == 'n') {
+                    v += '\n';
+                    ++i;
+                } else {
+                    v += l[i];
+                }
+            }
+            table[std::strtol(l.c_str(), nullptr, 10)] = v;
         }
     }
-    if (s.size() < 3 || s[0] != '@' || s[1] != '@') return nullptr;
-    auto it = table.find(std::strtol(s.c_str() + 2, nullptr, 10));
+    if (line.size() < 5 || line[0] != '@' || line[1] != '@') return nullptr;
+    long id = 0;
+    for (int i = 2; i < 5; ++i) {
+        char ch = line[i];
+        int d = (ch >= '0' && ch <= '9') ? ch - '0' : (ch >= 'A' && ch <= 'Z') ? ch - 'A' + 10 : -1;
+        if (d < 0) return nullptr;
+        id = id * 36 + d;
+    }
+    auto it = table.find(id);
     return it == table.end() ? nullptr : &it->second;
+}
+
+// Replace every marker line of a (possibly multi-line) string.
+bool expand_markers(Machine& m, std::string& text) {
+    if (text.find("@@") == std::string::npos) return false;
+    std::string out;
+    bool any = false;
+    size_t pos = 0;
+    while (true) {
+        size_t nl = text.find('\n', pos);
+        std::string line = text.substr(pos, nl == std::string::npos ? std::string::npos : nl - pos);
+        if (const std::string* t = marker_lookup(m, line)) {
+            out += *t;
+            any = true;
+        } else {
+            out += line;
+        }
+        if (nl == std::string::npos) break;
+        out += '\n';
+        pos = nl + 1;
+    }
+    if (any) text = out;
+    return any;
 }
 
 // Short strings drawn verbatim (names, labels): lang/<code>/STRINGS.TXT holds
@@ -118,7 +158,7 @@ std::string translated_string(Machine& m, uint16_t seg, uint16_t off, size_t* pa
         if (!ch) break;
         text += static_cast<char>(ch);
     }
-    if (const std::string* t = marker_text(m, text)) return *t;
+    if (expand_markers(m, text)) return text;
     bool compacted = false;
     if (const std::string* t = string_text(m, text, &compacted)) {
         // A name padded with spaces for centring (matched without its spaces):
