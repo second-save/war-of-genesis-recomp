@@ -84,6 +84,8 @@ void Settings::load() {
         else if (k == "key_right_click") key_right_click = parse_keys(v);
         else if (k == "music_volume") music_volume = std::clamp(std::atoi(v.c_str()), 0, 100);
         else if (k == "voice_volume") voice_volume = std::clamp(std::atoi(v.c_str()), 0, 100);
+        else if (k == "language") language = v;
+        else if (k == "lang_dir") lang_dir = v;
         else if (k == "fullscreen") fullscreen = parse_bool(v);
         else if (k == "smooth_scaling") smooth_scaling = parse_bool(v);
     }
@@ -110,6 +112,10 @@ void Settings::save() const {
       << "music_volume = " << music_volume << "\n"
       << "# Digitized sound (Sound Blaster): the Softmax logo voice.\n"
       << "voice_volume = " << voice_volume << "\n\n"
+      << "[language]\n"
+      << "# ko = original Korean; en = English translation (files in lang/en next to the game binary)\n"
+      << "language = " << language << "\n"
+      << (lang_dir.empty() ? "" : "lang_dir = " + lang_dir + "\n") << "\n"
       << "[video]\n"
       << "# Toggle in game with F11 or Alt+Enter.\n"
       << "fullscreen = " << (fullscreen ? "on" : "off") << "\n"

@@ -87,6 +87,7 @@ endif()
 # -----------------------------------------------------------------------------
 add_executable(genesis
     src/main.cpp
+    src/runtime/text.cpp
 )
 
 target_link_libraries(genesis PRIVATE

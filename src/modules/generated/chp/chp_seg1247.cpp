@@ -730,7 +730,10 @@ L_06D8:
     (void)pop16(m); c.cs = pop16(m); return;
 }
 
-void F_1247_084D(Machine& m) {
+// Overridden by hints/chp.json: calls go to gen::text::chp_print_text, which may call the original.
+void F_1247_084D(Machine& m) { gen::text::chp_print_text(m, &F_1247_084D_orig); }
+
+void F_1247_084D_orig(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;
     // 084D: push bp

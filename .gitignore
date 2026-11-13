@@ -7,3 +7,5 @@ __pycache__/
 # Game data is not part of this repository: supply your own copy.
 The-War-of-Genesis_DOS_KO/
 *.jpg
+work/
+lang/

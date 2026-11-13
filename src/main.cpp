@@ -189,6 +189,31 @@ int main(int argc, char* argv[]) {
     gen::Machine machine;
     g_machine = &machine;
     machine.dos->set_base_dir(data_dir);
+    {
+        // Translation overlay: lang/<language>/ next to the binary (or one level up
+        // for build/ trees), or settings lang_dir.
+        const auto& st = gen::Settings::get();
+        if (st.language != "ko" && !st.language.empty()) {
+            std::vector<std::filesystem::path> candidates;
+            if (!st.lang_dir.empty()) candidates.emplace_back(st.lang_dir);
+            if (char* bp = SDL_GetBasePath()) {
+                candidates.emplace_back(std::filesystem::path(bp) / "lang" / st.language);
+                candidates.emplace_back(std::filesystem::path(bp) / ".." / "lang" / st.language);
+                SDL_free(bp);
+            }
+            candidates.emplace_back(std::filesystem::path("lang") / st.language);
+            for (const auto& c : candidates) {
+                std::error_code ec;
+                if (std::filesystem::is_directory(c, ec)) {
+                    machine.dos->set_overlay_dir(std::filesystem::canonical(c, ec));
+                    std::cout << "[INFO] Language " << st.language << ": " << machine.dos->overlay_dir().string() << "\n";
+                    break;
+                }
+            }
+            if (machine.dos->overlay_dir().empty())
+                std::cerr << "[WARN] language '" << st.language << "' selected but no lang/" << st.language << " folder found\n";
+        }
+    }
 
     if (!machine.video->init("The War of Genesis (창세기전)")) {
         std::cerr << "[ERR] Failed to initialize video subsystem\n";

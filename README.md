@@ -66,6 +66,24 @@ launch:
 - Linux: `~/.local/share/Softmax/WarOfGenesis/settings.ini`
 - Windows: `%APPDATA%\Softmax\WarOfGenesis\settings.ini`
 
+## Translation (work in progress)
+
+Set `language = en` in the settings file. Translated files are served from
+`lang/en/` (next to the binary, or `../lang/en` from `build/`) in place of the
+game's own, and the game folder is never modified. With a translation active,
+the dialogue typesetter is replaced by a native one (`src/runtime/text.cpp`)
+that sets ASCII text proportionally (VWF) with word wrap and page breaks,
+still using the game's own font and drawing routines. Korean mode runs the
+original code unchanged.
+
+```sh
+python3 tools/text/visual.py extract The-War-of-Genesis_DOS_KO work          # Korean source, local only
+python3 tools/text/visual.py build The-War-of-Genesis_DOS_KO translations/en lang/en
+```
+
+`translations/en/` holds the English text (no Korean game text) and
+`glossary.tsv` the naming choices. Status: story dialogue scene 1 only.
+
 ## Debugging aids
 
 These are environment variables:

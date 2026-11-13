@@ -32,6 +32,9 @@ public:
 
     void set_base_dir(const std::filesystem::path& base_dir);
     const std::filesystem::path& base_dir() const { return base_dir_; }
+    // Translation overlay: files present here replace the game's own (read-only use).
+    void set_overlay_dir(const std::filesystem::path& dir) { overlay_dir_ = dir; }
+    const std::filesystem::path& overlay_dir() const { return overlay_dir_; }
 
     // Path resolution (case-insensitive, backslash normalization)
     std::filesystem::path resolve_path(const std::string& dos_path) const;
@@ -64,6 +67,7 @@ private:
     uint32_t pdx() const;
     Machine& machine_;
     std::filesystem::path base_dir_;
+    std::filesystem::path overlay_dir_;
 
     // File descriptors (0..4 are standard I/O)
     static constexpr size_t kMaxHandles = 64;

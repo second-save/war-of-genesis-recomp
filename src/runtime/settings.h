@@ -23,6 +23,10 @@ struct Settings {
     int music_volume = 100;
     int voice_volume = 100;
 
+    // Language: "ko" (original) or a translation in lang/<code>/ (e.g. "en").
+    std::string language = "ko";
+    std::string lang_dir;  // optional override of the translation folder
+
     // Window
     bool fullscreen = false;
     bool smooth_scaling = false;

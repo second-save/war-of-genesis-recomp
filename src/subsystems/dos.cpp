@@ -507,6 +507,18 @@ void DosSubsystem::handle_int21() {
 
         std::ios_base::openmode mode = std::ios::binary;
         uint8_t access = al & 3;
+        // Read-only opens are served from the translation overlay when it has the file.
+        if (access == 0 && !overlay_dir_.empty()) {
+            std::error_code ec;
+            std::filesystem::path rel = std::filesystem::relative(real_path, base_dir_, ec);
+            if (!ec && !rel.empty() && rel.native()[0] != '.') {
+                std::filesystem::path over = overlay_dir_ / rel;
+                if (std::filesystem::is_regular_file(over, ec)) {
+                    if (trace_files()) std::fprintf(stderr, "[DOS Open] overlay: %s\n", over.string().c_str());
+                    real_path = over;
+                }
+            }
+        }
         if (access == 0) mode |= std::ios::in;
         else if (access == 1) mode |= std::ios::out;
         else mode |= std::ios::in | std::ios::out;

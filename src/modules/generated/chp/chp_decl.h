@@ -460,4 +460,6 @@ void F_1F17_0439(Machine& m);
 void F_1F17_0483(Machine& m);
 void F_1F17_067F(Machine& m);
 void F_1F17_08CA(Machine& m);
+void F_1247_084D_orig(Machine& m);
 }  // namespace
+namespace gen::text { void chp_print_text(Machine& m, FunctionPointer original); }

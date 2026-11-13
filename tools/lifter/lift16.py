@@ -469,7 +469,13 @@ class Lifter:
                 "#pragma once", '#include "runtime/recomp.h"', f"namespace gen::mod_{mod} {{",
                 f"constexpr uint16_t kLoadSeg = 0x{self.load_seg:04X};"]
         decl += [f"void {fname(f.seg, f.off)}(Machine& m);" for f in sorted(self.functions.values(), key=lambda f: (f.seg, f.off))]
+        overrides = self.hints.get("override", {})
+        decl += [f"void {fname(*(int(x, 16) for x in k.split(':')))}_orig(Machine& m);" for k in sorted(overrides)]
         decl.append("}  // namespace")
+        # Native hooks (hint "override"): hook(m, original) replaces the function.
+        for hook in sorted(set(overrides.values())):
+            ns, _, name = hook.rpartition("::")
+            decl += [f"namespace {ns} {{ void {name}(Machine& m, FunctionPointer original); }}"]
         (out_dir / f"{mod}_decl.h").write_text("\n".join(decl) + "\n")
 
         files = []
@@ -545,7 +551,13 @@ class Lifter:
         # Indirect-jump switches may have registered extra labels.
         jumped |= {t for t in fn.labels if t in fn.body}
         # Pass 2: render.
-        out = [f"void {fname(seg, fn.off)}(Machine& m) {{", "    Cpu& c = m.cpu;", "    (void)c;"]
+        hook = self.hints.get("override", {}).get(f"{seg:04X}:{fn.off:04X}")
+        name = fname(seg, fn.off) + ("_orig" if hook else "")
+        out = []
+        if hook:
+            out += [f"// Overridden by hints/{self.name}.json: calls go to {hook}, which may call the original.",
+                    f"void {fname(seg, fn.off)}(Machine& m) {{ {hook}(m, &{name}); }}", ""]
+        out += [f"void {name}(Machine& m) {{", "    Cpu& c = m.cpu;", "    (void)c;"]
         if fn.off != offs[0]:
             out.append(f"    goto L_{fn.off:04X};")
             jumped.add(fn.off)
