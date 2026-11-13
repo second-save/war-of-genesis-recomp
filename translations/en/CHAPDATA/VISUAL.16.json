@@ -1,0 +1,52 @@
+[
+ {
+  "code": "UF",
+  "hash": "5c665ac840",
+  "en": "GS - I am GS, a ranger from Dagal. I wish to see the Grand Duke."
+ },
+ {
+  "code": "DG",
+  "hash": "a36b21e4be",
+  "en": "Soldier 1 - You want to see the Grand Duke? Hey, we've got suspicious characters here!"
+ },
+ {
+  "code": "DG",
+  "hash": "e6d4d89fd4",
+  "en": "Soldier 2 - Well, they're all armed. Let's disarm them first!"
+ },
+ {
+  "code": "UF",
+  "hash": "d400944239",
+  "en": "GS - Listen, I'm GS, a ranger and a friend of Grand Duke Mozel. If you send word to him, he can vouch for me."
+ },
+ {
+  "code": "DG",
+  "hash": "a0ddd11506",
+  "en": "Soldier 1 - Grand Duke Mozel was killed by assassins days ago. And the Senate has ordered the arrest of anyone suspicious passing through Bifrost. I don't know whether you're guilty or not, but you'll have to come with us!"
+ },
+ {
+  "code": "UF",
+  "hash": "b5b0dee465",
+  "en": "GS - What... Grand Duke Mozel... What on earth is happening in Bifrost?"
+ },
+ {
+  "code": "DG",
+  "hash": "9b1a0b5732",
+  "en": "Soldier 2 - You can explain later. All of you, drop your weapons!"
+ },
+ {
+  "code": "UF",
+  "hash": "a974ebdf52",
+  "en": "GS - We can't do that. We carry an important message from Dagal. If you mistreat us, you'll pay for it!"
+ },
+ {
+  "code": "DG",
+  "hash": "79d0e34834",
+  "en": "Soldier 1 - Heh heh heh. If we let you go, we'll pay for it today. Stop talking and drop your weapons quietly."
+ },
+ {
+  "code": "UF",
+  "hash": "2782a60020",
+  "en": "GS - Then there's no choice. Everyone, flee to the mountains to the north! We'll have to hide there and see how things turn out."
+ }
+]

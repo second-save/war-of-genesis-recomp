@@ -1,0 +1,87 @@
+[
+ {
+  "code": "DA",
+  "hash": "351aa5981b",
+  "en": "Robin - Someone named Daicus has come from the Empire. He says he wants to see Lord Draupnir."
+ },
+ {
+  "code": "UD",
+  "hash": "bfe01f8f5f",
+  "en": "Draupnir - What, Prince Daicus?"
+ },
+ {
+  "code": "DA",
+  "hash": "0b0d81edbf",
+  "en": "Robin - He says he's brought a message from the Empire."
+ },
+ {
+  "code": "UD",
+  "hash": "07db9cb6f1",
+  "en": "Draupnir - Show him in."
+ },
+ {
+  "code": "DP",
+  "hash": "ff43093c22",
+  "en": "Daicus - It's been a long time, Sir Draupnir."
+ },
+ {
+  "code": "UD",
+  "hash": "afa68d61fb",
+  "en": "Draupnir - What on earth happened? We thought you had gone missing in Trisys..."
+ },
+ {
+  "code": "DP",
+  "hash": "3d2fdb1666",
+  "en": "Daicus - It's shameful to admit, but I fell into a Trisys trap and was taken prisoner. I was held at Castle Gaysir in the Empire all this time. Then a man named Beradin offered to free me if I would deliver a message, and so I was able to come back."
+ },
+ {
+  "code": "UD",
+  "hash": "f90fa789d1",
+  "en": "Draupnir - A message from Beradin?"
+ },
+ {
+  "code": "DP",
+  "hash": "5bfe9ef471",
+  "en": "Daicus - He will release Princess Iyolin if we recognise the Empire's existing territory. I don't know what has happened here, but you've driven the Empire into quite a corner!"
+ },
+ {
+  "code": "UD",
+  "hash": "5ff08398d5",
+  "en": "Draupnir - It's thanks to GS here and Prince Rashid."
+ },
+ {
+  "code": "DP",
+  "hash": "95e0f66bea",
+  "en": "Daicus - Beradin says he wants a treaty agreed at a private meeting between the Black Prince and your leader on the Black Bridge in the Empire. If you ask me, there's a good chance it's a trap."
+ },
+ {
+  "code": "UD",
+  "hash": "a8548bac87",
+  "en": "Draupnir - But it's a kind of threat: if we refuse, there's no telling what may happen to Princess Iyolin."
+ },
+ {
+  "code": "DF",
+  "hash": "853e129760",
+  "en": "GS - I'll go. Even if it's a trap, it costs us less if it's me, doesn't it?"
+ },
+ {
+  "code": "UC",
+  "hash": "56fdcd7466",
+  "en": "Rashid - No! GS! It's too dangerous!"
+ },
+ {
+  "code": "DF",
+  "hash": "80628d9b6c",
+  "en": "GS - But realistically, Lord Draupnir can't go, given his age and the danger. And you, Prince, carry the future of Pandragon, so it's even more dangerous for you. In the end, the most sensible choice is me: I'm no loss, and I can slip away if things go wrong."
+ },
+ {
+  "code": "UD",
+  "hash": "95a5160443",
+  "en": "Draupnir - ...I always end up asking the hardest things of you, GS... If it weren't for the princess, I would never send you..."
+ },
+ {
+  "code": "DF",
+  "hash": "24ddaad4a3",
+  "en": "GS - Not at all. I'm a man who doesn't even know where he comes from. Thank you for all the kindness you've shown me, more than I deserved. I will rescue the princess, whatever it takes."
+ }
+]

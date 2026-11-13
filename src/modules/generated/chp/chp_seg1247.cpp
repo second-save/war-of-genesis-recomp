@@ -1007,7 +1007,10 @@ L_0986:
     (void)pop16(m); c.cs = pop16(m); return;
 }
 
-void F_1247_0994(Machine& m) {
+// Overridden by hints/chp.json: calls go to gen::text::chp_print_prologue, which may call the original.
+void F_1247_0994(Machine& m) { gen::text::chp_print_prologue(m, &F_1247_0994_orig); }
+
+void F_1247_0994_orig(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;
     // 0994: push bp

@@ -1374,7 +1374,10 @@ L_0671:
     (void)pop16(m); c.cs = pop16(m); return;
 }
 
-void F_268D_0689(Machine& m) {
+// Overridden by hints/pack.json: calls go to gen::text::pack_draw_string, which may call the original.
+void F_268D_0689(Machine& m) { gen::text::pack_draw_string(m, &F_268D_0689_orig); }
+
+void F_268D_0689_orig(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;
     // 0689: push bp

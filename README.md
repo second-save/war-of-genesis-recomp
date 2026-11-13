@@ -77,12 +77,24 @@ still using the game's own font and drawing routines. Korean mode runs the
 original code unchanged.
 
 ```sh
-python3 tools/text/visual.py extract The-War-of-Genesis_DOS_KO work          # Korean source, local only
-python3 tools/text/visual.py build The-War-of-Genesis_DOS_KO translations/en lang/en
+# Korean source for translators (local only, not committed):
+python3 tools/text/visual.py extract The-War-of-Genesis_DOS_KO work     # story dialogue
+python3 tools/text/prologue.py extract The-War-of-Genesis_DOS_KO work   # chapter prologues
+python3 tools/text/talk.py extract The-War-of-Genesis_DOS_KO work       # town talk
+# Build the overlay from translations/en:
+tools/text/build_lang.sh The-War-of-Genesis_DOS_KO en
 ```
 
-`translations/en/` holds the English text (no Korean game text) and
-`glossary.tsv` the naming choices. Status: story dialogue scene 1 only.
+`translations/en/` holds the English text (no Korean game text): story
+dialogue (`CHAPDATA/VISUAL.*.json`), chapter prologues (`CHAPDATA/PE.json`),
+town talk (`CSTLDATA/TAK.json`), names and labels (`strings.tsv`), and the
+naming choices (`glossary.tsv`). Town talk lines don't fit the game's 26-byte
+records, so the built files hold `@@id` markers and the text lives in
+`lang/en/TEXT.TXT`; the PACK text hook swaps them in.
+
+Status: all story dialogue, chapter prologues, town talk and NPC names are
+translated. Not yet: menus and prompts (drawn by other routines), battle
+scenarios, item/magic/class names, and Korean text baked into images.
 
 ## Debugging aids
 

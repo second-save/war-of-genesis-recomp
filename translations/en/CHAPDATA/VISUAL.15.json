@@ -1,0 +1,107 @@
+[
+ {
+  "code": "UF",
+  "hash": "5c665ac840",
+  "en": "GS - I am GS, a ranger from Dagal. I wish to see the Grand Duke."
+ },
+ {
+  "code": "DG",
+  "hash": "9f0fb154ab",
+  "en": "Soldier - GS from Dagal... Please wait a moment."
+ },
+ {
+  "code": "DG",
+  "hash": "095466fcbe",
+  "en": "Ah, the Grand Duke will see you. Please follow me."
+ },
+ {
+  "code": "UF",
+  "hash": "94a6a8dd7d",
+  "en": "GS - Good day, Your Grace."
+ },
+ {
+  "code": "DK",
+  "hash": "b23fbcb5c7",
+  "en": "Mozel - Oh, GS, it's been a while. I've been hearing all about your deeds in Dagal. What brings you here?"
+ },
+ {
+  "code": "UF",
+  "hash": "dfb97ee608",
+  "en": "GS - In truth, I bring a secret letter from Lord Draupnir of Dagal. He hopes for Bifrost's help in the campaign against Trisys."
+ },
+ {
+  "code": "DK",
+  "hash": "1673f2abfe",
+  "en": "Mozel - Hmm, I understand Lord Draupnir's wishes. But you know as well as I do that Bifrost has kept its independence all these years only by staying strictly neutral and siding with no one."
+ },
+ {
+  "code": "UF",
+  "hash": "40a7a56b2a",
+  "en": "GS - I understand that well. But even without direct military action, merely holding Trisys in check would be a great help to Princess Iyolin's Silver Arrow. Surely that would not be too heavy a burden for you, Your Grace."
+ },
+ {
+  "code": "DK",
+  "hash": "fde5ea199a",
+  "en": "Mozel - Even so, it's not something I can decide lightly. For my part, I lean towards helping Iyolin and the others. But I cannot ignore the other nobles and the Senate, so stay a few days and wait for the outcome."
+ },
+ {
+  "code": "M",
+  "hash": "da16d4c33e",
+  "en": "A few hours later... Strider suddenly came running to GS's lodgings."
+ },
+ {
+  "code": "UW",
+  "hash": "64ec23030b",
+  "en": "Strider - Hey, GS! Wake up!"
+ },
+ {
+  "code": "DF",
+  "hash": "6ba9d8a7ac",
+  "en": "GS - Strider! What are you doing here at this hour?"
+ },
+ {
+  "code": "UW",
+  "hash": "5fa13ba5a7",
+  "en": "Strider - There's trouble. This is no time for you to be sleeping."
+ },
+ {
+  "code": "DF",
+  "hash": "76ba27eeaf",
+  "en": "GS - Calm down and tell me what's happened."
+ },
+ {
+  "code": "UW",
+  "hash": "8cabbff494",
+  "en": "Strider - Listen carefully. A few hours ago, Grand Duke Mozel was assassinated. The killer hasn't been caught, but the Senate, called together in a hurry, is naming your party, who arrived here recently, as the culprits!"
+ },
+ {
+  "code": "DF",
+  "hash": "39f8028142",
+  "en": "GS - Wh... what?! That's absurd..."
+ },
+ {
+  "code": "UW",
+  "hash": "bbb911472a",
+  "en": "Strider - Either way, the way things stand, you'll be convicted before the truth ever comes out. Never mind that now; you'd better get out of sight."
+ },
+ {
+  "code": "DF",
+  "hash": "50994f6179",
+  "en": "GS - Wouldn't running away be as good as admitting guilt?"
+ },
+ {
+  "code": "UW",
+  "hash": "41b6773ab2",
+  "en": "Strider - The trouble is that the Senate has split into two factions over who will be the next Grand Duke. Both of them will be desperate to catch you first. Right now no explanation will get through to them."
+ },
+ {
+  "code": "DF",
+  "hash": "4d89bf51ec",
+  "en": "GS - Hmm, of all times for this to happen..."
+ },
+ {
+  "code": "UW",
+  "hash": "bdfef8b5d8",
+  "en": "Strider - Are you still hoping for help against Trisys? Whoever takes power, they won't be able to meddle in foreign affairs for months at least. Right now saving your own skin comes first! Damn it, I was on the Grand Duke's side, so I won't be safe either. I'll come with you. The border will be sealed tight by now, so let's hide in the mountains and see how things turn out!"
+ }
+]

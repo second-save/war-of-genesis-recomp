@@ -1,0 +1,202 @@
+[
+ {
+  "code": "UE",
+  "hash": "48824ef208",
+  "en": "Iyolin - It has been a long time, Your Grace."
+ },
+ {
+  "code": "DK",
+  "hash": "762c5a4f5c",
+  "en": "Mozel - Oh ho, if it isn't the little princess of Pandragon! You've grown into a grown woman. When I visited Pandragon ten years ago you were just a little girl... But I am truly sorry about your father."
+ },
+ {
+  "code": "UE",
+  "hash": "874d4cc499",
+  "en": "Iyolin - Five years have passed, yet I still cannot forget. My brother and I will restore our kingdom, whatever it takes."
+ },
+ {
+  "code": "DK",
+  "hash": "1b2396efe2",
+  "en": "Mozel - Forgive me for not helping you then. I stood with Pandragon, but as Grand Duke I could not cast aside centuries of neutrality. Your father was an old friend of mine, and I truly regret it."
+ },
+ {
+  "code": "UE",
+  "hash": "2fdbc0bd1e",
+  "en": "Iyolin - Even so, thank you for taking us in now."
+ },
+ {
+  "code": "DK",
+  "hash": "228899df9e",
+  "en": "Mozel - Ho ho ho! The Imperial dogs are howling for me to hand you over, but the great Grand Duchy of Bifrost will not bow to threats like that. We stay out of foreign affairs only because of an ancient oath; our army is nothing the Empire can take lightly. Still, with the border sealed, getting back to Dagal will not be easy for you."
+ },
+ {
+  "code": "UE",
+  "hash": "05e38b0087",
+  "en": "Iyolin - Even so, we must return to Dagal. Once we have regained some strength here, we will go back even if we have to break through by force."
+ },
+ {
+  "code": "DW",
+  "hash": "480b9c4cb3",
+  "en": "Strider - That's impossible. They say the Empire has massed troops at the border fortresses and even brought in magic armor. Crossing the Gigantes Mountains instead might..."
+ },
+ {
+  "code": "DK",
+  "hash": "3f7798bffc",
+  "en": "Mozel - No, that's far too dangerous. Besides, these are knights, not rangers like you. They could never cross mountains that rugged."
+ },
+ {
+  "code": "UE",
+  "hash": "0e968468a8",
+  "en": "Iyolin - Is it possible to reach Dagal over the Gigantes Mountains?"
+ },
+ {
+  "code": "DW",
+  "hash": "b49fffe6c5",
+  "en": "Strider - The rangers of Bifrost often cross the Gigantes as far as the polar north. You cross the western Gigantes from Bifrost to reach the north, travel through the polar lands, and come back over the eastern Gigantes north of Dagal. But for regular knights, who aren't used to the mountains..."
+ },
+ {
+  "code": "UE",
+  "hash": "9fbd34be78",
+  "en": "Iyolin - Still, it must be better than charging straight through the Imperial blockade. We have to get back to Dagal and see Lord Draupnir as soon as we can."
+ },
+ {
+  "code": "DK",
+  "hash": "d6fec3ea6d",
+  "en": "Mozel - Hmm... Then let's do this. I'll introduce you to the finest mountaineer in Bifrost. He can bring you safely back to Dagal."
+ },
+ {
+  "code": "UW",
+  "hash": "6e06919353",
+  "en": "Strider - You mean GS?"
+ },
+ {
+  "code": "DK",
+  "hash": "32c9969237",
+  "en": "Mozel - Who else? GS is experienced and level-headed. He can bring the Holy Knights of Pandragon home safely."
+ },
+ {
+  "code": "UE",
+  "hash": "140f32909f",
+  "en": "Iyolin - What sort of man is GS?"
+ },
+ {
+  "code": "DW",
+  "hash": "959817bd7c",
+  "en": "Strider - A ranger they call the Gray Hyena: the Gray Scavenger. He started working a few years ago, and he's a friend of mine. He hasn't been at it long, but he's famous among the rangers for his expeditions and mountain guiding. As it happens, he arrived at Bifrost Castle a few days ago. I'll fetch him right away."
+ },
+ {
+  "code": "UK",
+  "hash": "b1a1e41b46",
+  "en": "Mozel - With GS I could entrust you to him without a worry, but crossing the Gigantes is no easy task. Knights like you, with no mountain experience, must be ready for terrible hardship."
+ },
+ {
+  "code": "DI",
+  "hash": "510729d7a9",
+  "en": "Locarno - Ha ha! Your Grace worries too much. Anything a lowly ranger can do is nothing to knights like us."
+ },
+ {
+  "code": "UK",
+  "hash": "c76e4215ea",
+  "en": "Mozel - Not so. Rangers can't keep up with knights on the battlefield, and knights can't keep up with rangers in the mountains and dungeons. Ah, here he comes."
+ },
+ {
+  "code": "DF",
+  "hash": "7e1570cb7d",
+  "en": "GS - Good day, Your Grace."
+ },
+ {
+  "code": "UK",
+  "hash": "0d52272ea2",
+  "en": "Mozel - It's been a while, GS. Strider will have told you the gist: these are the Holy Knights of Pandragon."
+ },
+ {
+  "code": "UE",
+  "hash": "461667379f",
+  "en": "Iyolin - I've heard a great deal about you. I am Iyolin, Princess of Pandragon."
+ },
+ {
+  "code": "DC",
+  "hash": "4bd88148a5",
+  "en": "Rashid - I'm Rashid!"
+ },
+ {
+  "code": "UJ",
+  "hash": "9a3fdf62d3",
+  "en": "Duran - Duran Rembrandt, Commander of the Holy Knights of Pandragon."
+ },
+ {
+  "code": "DI",
+  "hash": "afbac59b89",
+  "en": "Locarno - Tch. Travelling with some ranger..."
+ },
+ {
+  "code": "UK",
+  "hash": "3e06bdcb4f",
+  "en": "Mozel - I would like you to guide them over the Gigantes to Dagal... I know it's a hard task, but there's no one else I can ask."
+ },
+ {
+  "code": "DF",
+  "hash": "529f068006",
+  "en": "GS - Strider told me, but it won't be easy even for me. Guiding people of such high birth is a heavy responsibility, and I doubt they would follow my orders. You might do better to look for another guide."
+ },
+ {
+  "code": "UK",
+  "hash": "3618bcd808",
+  "en": "Mozel - But you'd be hard pressed to find anyone in Bifrost who knows the Gigantes better than you. And you're on good terms with the nomads of the north, aren't you?"
+ },
+ {
+  "code": "UE",
+  "hash": "9c6e982b95",
+  "en": "Iyolin - We promise to cooperate in every way we can."
+ },
+ {
+  "code": "DI",
+  "hash": "1dd1e89af7",
+  "en": "Locarno - Tch, bowing and scraping to a ranger... Commander Duran, we don't need the likes of him. We can get over one mountain by ourselves."
+ },
+ {
+  "code": "UF",
+  "hash": "29a8b73d0d",
+  "en": "GS - It is not one mountain! The Gigantes, together with the Empire's Dragon's Breath range, form the spine of the continent: a natural barrier of more than thirty-two thousand peaks running from west to east. Even going around by the north, you must cross hundreds of mountains to reach Dagal. It's a hard route even for experts."
+ },
+ {
+  "code": "DE",
+  "hash": "dd8ba6018c",
+  "en": "Iyolin - But we have no other choice. We must cross the Gigantes whatever the danger. If you won't help us, GS, we will have to go on our own."
+ },
+ {
+  "code": "UF",
+  "hash": "70075a98b3",
+  "en": "GS - Very well. If that's how things stand, I'll help you. But on one condition."
+ },
+ {
+  "code": "DE",
+  "hash": "c2036e0b77",
+  "en": "Iyolin - What condition?"
+ },
+ {
+  "code": "UF",
+  "hash": "ac2e5f5bc9",
+  "en": "GS - While we cross the mountains, you must do exactly as I say. I know you are all of noble birth, but however noble you are, you only have one life. If you don't follow my orders, I can't guarantee your safety."
+ },
+ {
+  "code": "DI",
+  "hash": "26149b9e37",
+  "en": "Locarno - Well! I've never seen such an insolent ranger. Setting conditions for the great Holy Knights of Pandragon!"
+ },
+ {
+  "code": "UJ",
+  "hash": "48490e3936",
+  "en": "Duran - That's enough, Locarno!"
+ },
+ {
+  "code": "DE",
+  "hash": "5026943bc1",
+  "en": "Iyolin - Agreed. During the journey we will do exactly as you say, GS."
+ },
+ {
+  "code": "UK",
+  "hash": "1e91b467ba",
+  "en": "Mozel - Good, good. GS, don't be too hard on them, and look after them well. Set off as soon as you're ready."
+ }
+]

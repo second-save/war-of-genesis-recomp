@@ -463,4 +463,6 @@ void F_268D_0689(Machine& m);
 void F_268D_08D4(Machine& m);
 void F_268D_090F(Machine& m);
 void F_268D_0987(Machine& m);
+void F_268D_0689_orig(Machine& m);
 }  // namespace
+namespace gen::text { void pack_draw_string(Machine& m, FunctionPointer original); }

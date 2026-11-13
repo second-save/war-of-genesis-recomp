@@ -336,7 +336,8 @@ void VideoSubsystem::present_frame() {
         static uint32_t last_shot = 0;
         static int shot_idx = 0;
         uint32_t now = SDL_GetTicks();
-        if (now - last_shot >= 2000) {
+        static const uint32_t every = std::getenv("GENESIS_SHOT_MS") ? std::atoi(std::getenv("GENESIS_SHOT_MS")) : 2000;
+        if (now - last_shot >= every) {
             last_shot = now;
             SDL_Surface* s = SDL_CreateRGBSurfaceWithFormatFrom(
                 rgba_buffer_.data(), screen_width_, screen_height_, 32,

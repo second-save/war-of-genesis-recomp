@@ -1,0 +1,47 @@
+[
+ {
+  "code": "UL",
+  "hash": "dff331e212",
+  "en": "Heisenberg - Oh, honoured guests from Dagal."
+ },
+ {
+  "code": "DE",
+  "hash": "e3463df46f",
+  "en": "Iyolin - Good day, Your Grace."
+ },
+ {
+  "code": "UL",
+  "hash": "7a8ff9fd26",
+  "en": "Heisenberg - I was just about to send word to Dagal. Erich, explain the situation."
+ },
+ {
+  "code": "DM",
+  "hash": "9274b94671",
+  "en": "Erich - To put it plainly, the Empire's movements are alarming. We have never been on good terms over the border, but lately things have become so serious that the border is all but on a war footing. It seems to stem from friction between the Imperial garrison in Pandragon and the Imperial homeland."
+ },
+ {
+  "code": "UE",
+  "hash": "2827fa213d",
+  "en": "Iyolin - A split within the Empire?"
+ },
+ {
+  "code": "DM",
+  "hash": "10f3e3df08",
+  "en": "Erich - Well, it was to be expected. As you know, since the Black Prince withdrew from public life, Beradin, who seized power, has kept using frontline troops for his own ends, such as excavating ruins, so the local commanders cannot help resenting the homeland. We believe this latest move is the Pandragon commanders acting on their own, without the homeland's approval. Perhaps they mean to take Astania and Dagal and then rebel against the homeland. Either way, the Empire's discord will surely work in our favour."
+ },
+ {
+  "code": "UE",
+  "hash": "b58c864f31",
+  "en": "Iyolin - Even so, it doesn't seem wise for us to strike first."
+ },
+ {
+  "code": "DM",
+  "hash": "7857ab8c04",
+  "en": "Erich - That is true. As you know, the fortress the Empire built on the border isn't impregnable, but it is far from easy to take. We have attacked it a few times before and only suffered heavy losses. And they have magic armor too... I think our chances are better if we wait for their attack, defeat them at Castle Astania, and then counterattack."
+ },
+ {
+  "code": "UE",
+  "hash": "eaad1e5304",
+  "en": "Iyolin - I agree; now is not the time to act rashly. Then let's keep a close watch on the Empire for now."
+ }
+]

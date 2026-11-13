@@ -1,0 +1,52 @@
+[
+ {
+  "code": "UA",
+  "hash": "0667eb2aaf",
+  "en": "Robin - Hey, wait a minute!"
+ },
+ {
+  "code": "DO",
+  "hash": "0412b75518",
+  "en": "Gishne - We've no time to rest. If we dawdle, the Imperial pursuers may find us!"
+ },
+ {
+  "code": "UA",
+  "hash": "f741bdb4c8",
+  "en": "Robin - Even so, I've got to know why you saved me! I can't just follow a stranger... I don't even know your name!"
+ },
+ {
+  "code": "DO",
+  "hash": "1ca355d983",
+  "en": "Gishne - Ha ha. I am Gishne, a mage of the Empire. To tell the truth, I never meant to stay in the Imperial army long, and I needed that parchment you stole, so I saved you. Now then, your name?"
+ },
+ {
+  "code": "UA",
+  "hash": "e4afb193a8",
+  "en": "Robin - Well, people have called me Robin for a long time... Heh, a war orphan doesn't get a proper name. I'm with the Thieves' Guild of Cyrups City. Anyway, what is this parchment that has the Imperial army in such a fuss?"
+ },
+ {
+  "code": "DO",
+  "hash": "770daf3725",
+  "en": "Gishne - It is a record left by Yugdpain, the Adventurer King of Pandragon, some three hundred years ago. They say it describes the ancient ruins scattered across the world, especially the Eight Wonders. Beradin had Granada search hard for it so he could decipher it and find where the ruins lie. If you hadn't stolen it, I would have had to take the risk myself."
+ },
+ {
+  "code": "UA",
+  "hash": "5f70350c0a",
+  "en": "Robin - Why did you betray the Empire?"
+ },
+ {
+  "code": "DO",
+  "hash": "24f15ffb6d",
+  "en": "Gishne - Because Beradin's actions are deeply suspicious. Ever since His Majesty the Black Prince stopped appearing in public, Beradin has used his power to throw the whole might of the Empire into research on an ancient god of destruction. With the victory at Grates, the unification of the continent is within reach; doesn't it strike you as strange to waste effort on such things? What's more, years have passed since the Black Prince was last seen... I couldn't help suspecting Beradin's motives, so I volunteered for the Imperial army and joined the excavations on purpose."
+ },
+ {
+  "code": "UA",
+  "hash": "12916157c1",
+  "en": "Robin - So what do we do now?"
+ },
+ {
+  "code": "DO",
+  "hash": "2a63f3b640",
+  "en": "Gishne - First, let's go to Bifrost. I recently heard that one of the Eight Wonders, the Underground Palace of Bifrost, was discovered by chance. We may find some clue there."
+ }
+]

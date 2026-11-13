@@ -1,0 +1,47 @@
+[
+ {
+  "code": "UA",
+  "hash": "f55f71a544",
+  "en": "Robin - Shh, quiet! Looks like we've finally reached Granada's secret vault, right?"
+ },
+ {
+  "code": "DN",
+  "hash": "3a08f4199e",
+  "en": "Grinid - Heh heh, we're finally going to make our fortune. By the way, where's this new treasure they just brought in?"
+ },
+ {
+  "code": "UA",
+  "hash": "2ff06c83aa",
+  "en": "Robin - The guild says it came from Trisys under a big Imperial escort, so it must be something special."
+ },
+ {
+  "code": "DN",
+  "hash": "7fbbafd580",
+  "en": "Grinid - Either way, just a few of the treasures here will keep us fed for a while! Let's grab what we can! (rummage, rummage)"
+ },
+ {
+  "code": "UG",
+  "hash": "8f38798b75",
+  "en": "Soldier - Hey! Who are you?!"
+ },
+ {
+  "code": "DN",
+  "hash": "e8b1655ce9",
+  "en": "Grinid - Damn, we've been spotted. Robin! If you've got enough, let's get out of here!"
+ },
+ {
+  "code": "UA",
+  "hash": "acf24a1987",
+  "en": "Robin - Wait! There's a strange parchment here..."
+ },
+ {
+  "code": "DN",
+  "hash": "058e53b45c",
+  "en": "Grinid - Hurry up, there's no time! That parchment's worth nothing!"
+ },
+ {
+  "code": "UA",
+  "hash": "802c553a1d",
+  "en": "Robin - All right. But it looks important, so I'm taking it."
+ }
+]
