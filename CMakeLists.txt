@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
-project(TheWarOfGenesis LANGUAGES C CXX)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" GENESIS_VERSION)
+string(STRIP "${GENESIS_VERSION}" GENESIS_VERSION)
+project(TheWarOfGenesis VERSION ${GENESIS_VERSION} LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -87,8 +89,11 @@ endif()
 # -----------------------------------------------------------------------------
 add_executable(genesis
     src/main.cpp
+    src/install.cpp
     src/runtime/text.cpp
 )
+
+target_compile_definitions(genesis PRIVATE GENESIS_VERSION="${GENESIS_VERSION}")
 
 target_link_libraries(genesis PRIVATE
     genesis_runtime

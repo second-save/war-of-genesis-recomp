@@ -9,3 +9,5 @@ The-War-of-Genesis_DOS_KO/
 *.jpg
 work/
 lang/
+dist/
+release/cache/

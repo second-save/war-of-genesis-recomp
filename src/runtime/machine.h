@@ -23,6 +23,7 @@ public:
     static constexpr size_t kRamSize = 16 * 1024 * 1024; // 16 MB
 
     Cpu cpu{};
+    Fpu fpu{};
     std::unique_ptr<uint8_t[]> ram;
 
     // Subsystems

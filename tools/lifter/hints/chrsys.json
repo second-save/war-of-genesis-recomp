@@ -6,7 +6,8 @@
     "0559:0009",
     "35FA:06D5",
     "0000:1C6C",
-    "0000:3836"
+    "0000:3836",
+    "354A:0039"
   ],
   "comments": {
     "369B:00C2": "INT 08h music ISR",
@@ -16,7 +17,8 @@
     "3084:00FE": "end of row-copy loop to VRAM: present the frame",
     "0000:1C6C": "C runtime exit hook stored as a far pointer (closes open streams)",
     "0000:3836": "printf output callback, passed to __vprinter as a near pointer (call word ptr [bp+0Eh])",
-    "3778:05F8": "draw_string(x, y, far text): battle and status text. Native hook: translations + proportional ASCII."
+    "3778:05F8": "draw_string(x, y, far text): battle and status text. Native hook: translations + proportional ASCII.",
+    "354A:0039": "INT 0Fh (IRQ 7) Sound Blaster DMA-complete ISR"
   },
   "inject_after": {
     "3084:00FE": "m.frame_sync();"

@@ -146,14 +146,17 @@ class Lifter:
             b = self.exe.image[io + 2]
             real = bytes([0xD8 | (b & 7)]) + self.exe.image[io + 3:io + 16]
             extra = 1
+            # Bits 7-6 of the ESC byte select the segment: DS, SS, CS, ES.
+            segov = ("c.ds", "c.ss", "c.cs", "c.es")[b >> 6]
         else:
             real = bytes([0xD8 + (n - 0x34)]) + self.exe.image[io + 2:io + 16]
             extra = 0
-        fpu = next(Cs(CS_ARCH_X86, CS_MODE_16).disasm(real, 0, count=1), None)
+            segov = None
+        fpu = next(self.md.disasm(real, 0, count=1), None)
         if fpu is None:
             return insn
         # Wrap: keep the original capstone object, attach metadata.
-        return _FpuEmu(insn, fpu, length=2 + extra + fpu.size - 1, int_no=n)
+        return _FpuEmu(insn, fpu, length=2 + extra + fpu.size - 1, int_no=n, segov=segov)
 
     # ------------------------------------------------------------- discovery
     def add_function(self, seg, off, speculative=False):
@@ -568,6 +571,89 @@ class Lifter:
         out += ["}", ""]
         return out
 
+    # ------------------------------------------------------------- x87
+    FPU_LOAD = {2: "m16i", 4: "m32", 8: "m64", 10: "m80"}
+    FPU_ILOAD = {2: "m16i", 4: "m32i", 8: "m64i"}
+    FPU_CONST = {"fldz": "0.0L", "fld1": "1.0L", "fldpi": "3.14159265358979323846L",
+                 "fldl2e": "1.44269504088896340736L", "fldl2t": "3.32192809488736234787L",
+                 "fldlg2": "0.30102999566398119521L", "fldln2": "0.69314718055994530942L"}
+    FPU_UNARY = {"fchs": "-a", "fabs": "std::fabs(a)", "fsqrt": "std::sqrt(a)", "fsin": "std::sin(a)",
+                 "fcos": "std::cos(a)", "frndint": "fround(m, a)"}
+    FPU_ARITH = {"fadd": "a + b", "fmul": "a * b", "fsub": "a - b", "fsubr": "b - a",
+                 "fdiv": "a / b", "fdivr": "b / a"}
+
+    def emit_fpu(self, seg, addr, f, int_no, segov):
+        """Lower one x87 instruction (real, or decoded from an emulator INT)."""
+        mn = f.mnemonic
+        ops = list(f.operands)
+        mem = next((o for o in ops if o.type == X86_OP_MEM), None)
+        regs = [int(f.reg_name(o.reg)[3]) if f.reg_name(o.reg) != "st" else 0
+                for o in ops if o.type == X86_OP_REG and f.reg_name(o.reg).startswith("st")]
+        where = f"{segov or (self.seg_of(f, mem) if mem else 'c.ds')}, {self.ea(f, mem) if mem else 0}"
+        is_int = mn.startswith("fi") and mn not in ("fincstp",)
+        pop = "fpop(m);"
+
+        def load():
+            kind = (self.FPU_ILOAD if is_int else self.FPU_LOAD).get(mem.size)
+            if kind is None:
+                raise LiftError(f"x87 operand size {mem.size}: {mn} {f.op_str}")
+            return f"fld_{kind}(m, {where})"
+
+        def store(val):
+            kind = (self.FPU_ILOAD if is_int else self.FPU_LOAD)[mem.size]
+            return f"fst_{kind}(m, {where}, {val});"
+
+        arith = mn[:-1] if mn.endswith("p") else mn
+        if arith.startswith("fi"):
+            arith = "f" + arith[2:]  # fiadd m16 == fadd with an integer operand
+        if mn in ("fld", "fild"):
+            return [f"fpush(m, {load()});"] if mem else [f"{{ long double v = fst(m, {regs[0]}); fpush(m, v); }}"]
+        if mn in self.FPU_CONST:
+            return [f"fpush(m, {self.FPU_CONST[mn]});"]
+        if mn in ("fst", "fstp", "fist", "fistp", "fisttp"):
+            p = mn.endswith("p")
+            if mem:
+                return [store("fst(m, 0)")] + ([pop] if p else [])
+            return [f"fst(m, {regs[0]}) = fst(m, 0);"] + ([pop] if p else [])
+        if arith in self.FPU_ARITH:
+            expr = self.FPU_ARITH[arith]
+            p = mn.endswith("p")
+            if mem:
+                return [f"{{ long double a = fst(m, 0), b = {load()}; fst(m, 0) = {expr}; }}"]
+            if len(regs) == 2:
+                d, s_ = regs
+            elif len(regs) == 1:
+                d, s_ = (regs[0], 0) if p else (0, regs[0])
+            else:
+                d, s_ = 1, 0
+            return [f"{{ long double a = fst(m, {d}), b = fst(m, {s_}); fst(m, {d}) = {expr}; }}"] + ([pop] if p else [])
+        if mn in ("fcom", "fcomp", "fcompp", "ficom", "ficomp", "fucom", "fucomp", "fucompp", "ftst"):
+            src = "0.0L" if mn == "ftst" else (load() if mem else f"fst(m, {regs[-1] if regs else 1})")
+            n_pop = 2 if mn.endswith("pp") else (1 if mn.endswith("p") else 0)
+            return [f"fcompare(m, fst(m, 0), {src});"] + [pop] * n_pop
+        if mn in self.FPU_UNARY:
+            return [f"{{ long double a = fst(m, 0); fst(m, 0) = {self.FPU_UNARY[mn]}; }}"]
+        if mn == "fxch":
+            r = regs[-1] if regs else 1
+            return [f"std::swap(fst(m, 0), fst(m, {r}));"]
+        if mn == "fxam":
+            return ["fxam(m);"]
+        if mn in ("fnstsw", "fstsw"):
+            if mem:
+                return [f"wr16(m, {where}, m.fpu.sw());"]
+            return ["c.ax.w = m.fpu.sw();"]
+        if mn in ("fnstcw", "fstcw"):
+            return [f"wr16(m, {where}, m.fpu.cw);"]
+        if mn == "fldcw":
+            return [f"m.fpu.cw = rd16(m, {where});"]
+        if mn in ("fninit", "finit"):
+            return ["m.fpu.init();"]
+        if mn in ("fnclex", "fclex", "fwait", "fnop", "fdisi", "fndisi", "feni", "fneni"):
+            return [f"// {mn}"]
+        if mn == "ffree":
+            return [f"m.fpu.tag |= (uint8_t)(1u << ((m.fpu.top + {regs[0]}) & 7));"]
+        return [f'm.fpu_emulated(0x{int_no:02X}, 0x{seg:04X}, 0x{addr:04X}, "{mn} {f.op_str}");']
+
     def check_relocs(self, seg, insn):
         """Warn about relocated words inside an instruction that we don't model."""
         if isinstance(insn, _FpuEmu):
@@ -648,7 +734,7 @@ class Lifter:
     # --------------------------------------------------------- instructions
     def emit_insn(self, fn: Function, seg: int, insn):
         if isinstance(insn, _FpuEmu):
-            return [f'm.fpu_emulated(0x{insn.int_no:02X}, 0x{seg:04X}, 0x{insn.address:04X}, "{insn.fpu.mnemonic} {insn.fpu.op_str}");'], True
+            return self.emit_fpu(seg, insn.address, insn.fpu, insn.int_no, insn.segov), True
         m = base_mnemonic(insn)
         ops = insn.operands
         nxt = (insn.address + insn.size) & 0xFFFF
@@ -759,6 +845,8 @@ class Lifter:
         if m == "out":
             port = rd(o0) if o0.type == X86_OP_REG else f"0x{o0.imm & 0xFF:X}"
             return [f"m.out{BITS[o1.size]}({port}, {rd(o1)});"], True
+        if m == "int" and o0.imm & 0xFF == 0x3D:
+            return ["// FWAIT (Borland FPU emulator)"], True
         if m == "int":
             return [f"m.interrupt(0x{o0.imm & 0xFF:X}, 0x{seg:04X}, 0x{insn.address:04X});"], True
         if m == "int3":
@@ -770,7 +858,9 @@ class Lifter:
         if m in ("lgdt", "lidt", "lldt", "ltr"):
             return [f"// {m} ignored in flat real-mode runtime"], True
         if m.startswith("f"):
-            return [f'm.fpu_emulated(0, 0x{seg:04X}, 0x{insn.address:04X}, "{insn.mnemonic} {insn.op_str}");'], True
+            return self.emit_fpu(seg, insn.address, insn, 0, None), True
+        if m == "wait":
+            return ["// fwait"], True
 
         # ---- control flow
         if m in COND:
@@ -860,8 +950,9 @@ class Lifter:
 class _FpuEmu:
     """Wrapper for a Borland FPU-emulator interrupt plus its real FPU decoding."""
 
-    def __init__(self, insn, fpu, length, int_no):
+    def __init__(self, insn, fpu, length, int_no, segov=None):
         self.insn, self.fpu, self.size, self.int_no = insn, fpu, length, int_no
+        self.segov = segov
         self.address = insn.address
         self.mnemonic = "fpu_emu"
         self.op_str = f"int {int_no:#x} => {fpu.mnemonic} {fpu.op_str}"

@@ -370,7 +370,7 @@ void AudioSubsystem::render(int frames) {
                 } else {
                     for (int chn = 0; chn < (stereo_ ? 2 : 1) && ok; ++chn) {
                         if (dma_16_) {
-                            uint8_t lo, hi;
+                            uint8_t lo = 0, hi = 0;
                             ok = dma_read_byte(lo) && dma_read_byte(hi);
                             s[chn] = static_cast<int16_t>(lo | (hi << 8));
                         } else {

@@ -1,6 +1,7 @@
 // Main entry point for The War of Genesis native static recompilation.
 #include "runtime/machine.h"
 #include "runtime/settings.h"
+#include "install.h"
 #include <fstream>
 #include <iterator>
 #include "subsystems/video.h"
@@ -144,10 +145,10 @@ int main(int argc, char* argv[]) {
 
     std::cout << "========================================================\n";
     std::cout << "  The War of Genesis (창세기전, 1995) Static Recompilation\n";
-    std::cout << "  Native Cross-Platform Port (macOS / Windows / Linux)\n";
+    std::cout << "  Native port " GENESIS_VERSION " (macOS / Windows / Linux)\n";
     std::cout << "========================================================\n";
 
-    std::filesystem::path data_dir = "The-War-of-Genesis_DOS_KO";
+    std::filesystem::path data_dir;  // --data-dir: run in place (development, tests)
     std::string module_to_run = "main";
     std::string cmd_args = "";
 
@@ -172,11 +173,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    if (!std::filesystem::exists(data_dir)) {
-        std::cerr << "[ERR] Data directory not found: " << data_dir << "\n";
-        return 1;
-    }
-
     SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
     SDL_SetHint(SDL_HINT_VIDEO_MAC_FULLSCREEN_SPACES, "1");
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER | SDL_INIT_EVENTS) < 0) {
@@ -185,6 +181,15 @@ int main(int argc, char* argv[]) {
 
     gen::Settings::get().load();
     std::cout << "[INFO] Settings: " << gen::Settings::get().path << "\n";
+
+    if (data_dir.empty()) {
+        data_dir = gen::install::prepare_game_dir();
+        if (data_dir.empty()) return 1;
+    } else if (std::string why = gen::install::check_game_dir(data_dir); !why.empty()) {
+        std::cerr << "[ERR] " << data_dir << ": " << why << "\n";
+        if (!std::filesystem::is_directory(data_dir)) return 1;
+    }
+    std::cout << "[INFO] Game folder: " << data_dir.string() << "\n";
     start_scripted_input();
     gen::Machine machine;
     g_machine = &machine;
@@ -205,7 +210,8 @@ int main(int argc, char* argv[]) {
             for (const auto& c : candidates) {
                 std::error_code ec;
                 if (std::filesystem::is_directory(c, ec)) {
-                    machine.dos->set_overlay_dir(std::filesystem::canonical(c, ec));
+                    machine.dos->set_overlay_dir(
+                        gen::install::prepare_translation(std::filesystem::canonical(c, ec), data_dir));
                     std::cout << "[INFO] Language " << st.language << ": " << machine.dos->overlay_dir().string() << "\n";
                     break;
                 }

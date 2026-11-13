@@ -345,4 +345,6 @@ void P_0001F510(Machine& m);
 void P_0001F52F(Machine& m);
 void P_0001F660(Machine& m);
 void P_0001F67A(Machine& m);
+void P_000107C3_orig(Machine& m);
 }  // namespace
+namespace gen::text { void ttl_draw_string(Machine& m, FunctionPointer original); }

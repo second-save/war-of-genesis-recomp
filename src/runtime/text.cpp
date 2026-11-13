@@ -422,4 +422,78 @@ void chrsys_draw_string(Machine& m, FunctionPointer original) {
     lib_draw_string(m, original, L);
 }
 
+// TTL 000107C3  draw_string(x = eax, y = edx, text = ebx), Watcom register
+// call: Hangul through 100AB/105B8 (16 px), ASCII through 101DC (glyph
+// address) and 10531 (8x16, set pixels only). Translated strings are drawn
+// proportionally with the same ASCII routines, centred in the Korean width
+// (the menus pad their entries with spaces for centring).
+void ttl_draw_string(Machine& m, FunctionPointer original) {
+    if (!translation_active()) {
+        original(m);
+        return;
+    }
+    Cpu& c = m.cpu;
+    std::string ko;
+    for (uint32_t p = c.bx.e; ko.size() < 256; ++p) {
+        uint8_t ch = rd8(m, c.ds, p);
+        if (!ch) break;
+        ko += static_cast<char>(ch);
+    }
+    const std::string* t = string_text(m, ko);
+    if (!t) {
+        original(m);
+        return;
+    }
+    std::string en = *t;
+    en.erase(0, en.find_first_not_of(' '));
+    if (std::getenv("GENESIS_TRACE_TEXT")) std::fprintf(stderr, "[TEXT] ttl '%s'\n", en.c_str());
+    const uint32_t saved_cx = c.cx.e, saved_si = c.si.e, saved_di = c.di.e;
+    const uint32_t x0 = c.ax.e, y = c.dx.e;
+
+    struct G { uint32_t addr; int first = 8, last = -1; };
+    auto glyph = [&](uint8_t ch) {
+        c.ax.e = ch;
+        push32(m, 0);
+        m.call32(0x000101DC);
+        G g{c.ax.e};
+        uint8_t bits = 0;
+        for (int r = 0; r < 16; ++r) bits |= rd8(m, c.ds, g.addr + r);
+        for (int col = 0; col < 8; ++col)
+            if (bits & (0x80 >> col)) {
+                if (g.last < 0) g.first = col;
+                g.last = col;
+            }
+        return g;
+    };
+    auto advance = [&](uint8_t ch) {
+        if (ch == ' ') return 4;
+        G g = glyph(ch);
+        return g.last < 0 ? 4 : g.last - g.first + 2;
+    };
+    int width = 0;
+    for (char ch : en) width += advance(static_cast<uint8_t>(ch));
+    // Centre on the Korean text itself (entries are left-aligned and padded
+    // with leading spaces to look centred).
+    const size_t lead = std::min(ko.find_first_not_of(' '), ko.size());
+    const size_t end = ko.find_last_not_of(' ') + 1;
+    const int centre = static_cast<int>(lead * 8 + (end > lead ? (end - lead) * 8 : 0) / 2);
+    uint32_t x = x0 + std::max(0, centre - width / 2);
+    for (char ch : en) {
+        const uint8_t u = static_cast<uint8_t>(ch);
+        if (u == ' ') { x += 4; continue; }
+        G g = glyph(u);
+        if (g.last < 0) { x += 4; continue; }
+        c.ax.e = x - g.first;
+        c.dx.e = y;
+        c.bx.e = g.addr;
+        push32(m, 0);
+        m.call32(0x00010531);
+        x += g.last - g.first + 2;
+    }
+    c.cx.e = saved_cx;
+    c.si.e = saved_si;
+    c.di.e = saved_di;
+    (void)pop32(m);  // ret
+}
+
 }  // namespace gen::text

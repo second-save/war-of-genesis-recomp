@@ -891,7 +891,10 @@ L_00010796:
     { m.poll_tick(); goto L_00010675; }
 }
 
-void P_000107C3(Machine& m) {
+// Overridden by hints/ttl.json: calls go to gen::text::ttl_draw_string, which may call the original.
+void P_000107C3(Machine& m) { gen::text::ttl_draw_string(m, &P_000107C3_orig); }
+
+void P_000107C3_orig(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;
     goto L_000107C3;

@@ -373,3 +373,18 @@
 흑기사	Black Knight
 흑태자	Black Prince
 흡혈박쥐	Vampire Bat
+# Title program (TTL): title menu, character gallery, copy-protection prompts
+시나리오 소개	Story
+캐릭터 소개	Characters
+처음부터 하기	New Game
+로드 게임	Load Game
+이어서 하기	Continue
+DOS로	Quit
+G.스케빈져	G. Scavenger
+아르시온	Arcion
+[메인메뉴로]	[Main Menu]
+메인메뉴로	Main Menu
+매뉴얼을 보고, 정확하게 암호를 입력해 주세요.	Check the manual and enter the password exactly.
+암호가 맞았습니다. 게임으로 넘어갑니다.	Correct password. On to the game.
+암호가 틀렸습니다.	Wrong password.
+암호가 틀렸습니다. 게임을 계속 진행시킬 수 없습니다.	Wrong password. The game can't continue.

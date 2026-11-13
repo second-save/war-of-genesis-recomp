@@ -786,6 +786,7 @@ void F_3478_0C85(Machine& m);
 void F_3478_0CA9(Machine& m);
 void F_354A_0002(Machine& m);
 void F_354A_002C(Machine& m);
+void F_354A_0039(Machine& m);
 void F_354A_01EE(Machine& m);
 void F_354A_0222(Machine& m);
 void F_354A_027B(Machine& m);

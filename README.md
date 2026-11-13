@@ -13,9 +13,9 @@ game; point the port at its folder.
 
 Playable from the original title screen: title music, Softmax logo voice, the
 real title menu, New Game → prologue → world map → towns; saving from the map
-menu and loading from the title menu; battles start (briefing, deployment,
-battle map, music). Full battles, the ending and later chapters are still
-being tested.
+menu and loading from the title menu; battles (briefing, deployment, battle
+map, music, x87 floating point for the battle formulas). Complete battles,
+the ending and later chapters are still being tested. English by default.
 
 | Original program | What it does | Translated by |
 |---|---|---|
@@ -35,12 +35,26 @@ Requires CMake ≥ 3.20, a C++20 compiler, SDL2 and Ninja (or Make).
 ```sh
 cmake -S . -B build -G Ninja
 ninja -C build
-./build/genesis --data-dir /path/to/The-War-of-Genesis_DOS_KO
+./build/genesis
 ```
 
-Without `--data-dir`, the port looks for `The-War-of-Genesis_DOS_KO/` in the
-current directory. The game writes its saves into that folder, as the
-original did, so back it up first.
+On first launch the port looks for the game folder (`game_dir` in the
+settings file, `The-War-of-Genesis_DOS_KO/` in the current directory, next to
+the binary or next to the .app) and otherwise asks for it with the system's
+folder picker. It checks the five executables against the release the code
+was generated from, then copies the folder once into `game/` next to the
+settings file. The game runs and saves there; the player's folder is only
+read.
+
+`--data-dir DIR` runs directly in `DIR` instead (development and tests). The
+game writes saves and its config into that folder, as the original did.
+
+Release package (macOS, universal, SDL2.framework inside, English as a patch
+so no game data is shipped):
+
+```sh
+release/build-macos.sh The-War-of-Genesis_DOS_KO   # -> dist/WarOfGenesis-<VERSION>-macOS.zip
+```
 
 Regenerating the translated code (needs Python 3 with `capstone`):
 
@@ -59,8 +73,8 @@ its hint files (`tools/lifter/hints/*.json`).
   right-click. Other keys go to the game as usual (Space skips story text).
 - **F11** or **Alt+Enter**: fullscreen. **Cmd+Q** / **Alt+F4**: quit.
 
-The settings file (key bindings, volumes, fullscreen) is created on first
-launch:
+The settings file (game folder, key bindings, volumes, language, fullscreen)
+is created on first launch, next to the installed `game/` folder:
 
 - macOS: `~/Library/Application Support/Softmax/WarOfGenesis/settings.ini`
 - Linux: `~/.local/share/Softmax/WarOfGenesis/settings.ini`
@@ -68,9 +82,13 @@ launch:
 
 ## Translation (work in progress)
 
-Set `language = en` in the settings file. Translated files are served from
-`lang/en/` (next to the binary, or `../lang/en` from `build/`) in place of the
-game's own, and the game folder is never modified. With a translation active,
+English is the default (`language = en` in the settings file; `ko` plays the
+original Korean). Translated files are served from `lang/en/` (next to the
+binary, in the .app's Resources, or `../lang/en` from `build/`) in place of
+the game's own, and the game folder is never modified. A release ships
+`lang/en` as `TEXT.TXT`, `STRINGS.TXT` and `FILES.PAT`
+(`tools/text/make_patch.py`): the rebuilt game files as copy/insert
+operations against the player's own files, applied on first launch. With a translation active,
 the dialogue typesetter is replaced by a native one (`src/runtime/text.cpp`)
 that sets ASCII text proportionally (VWF) with word wrap and page breaks,
 still using the game's own font and drawing routines. Korean mode runs the
@@ -96,8 +114,9 @@ records, so the built files hold `@@id` markers and the text lives in
 Status: all story dialogue, chapter prologues, town talk, battle scenarios
 (briefings and battle dialogue, `tools/text/battle.py`), NPC, unit and
 character names, and the menus, prompts and labels in CHP, PACK and CHRSYS are
-translated (`tools/text/exe_strings.py` lists the program strings). Not yet:
-item/magic names, the title menu (TTL) and Korean text baked into images.
+translated (`tools/text/exe_strings.py` lists the program strings), and so is
+the title menu and character gallery in TTL. Not yet: item/magic names and
+Korean text baked into images.
 
 ## Debugging aids
 

@@ -1,6 +1,7 @@
 {
   "comments": {
-    "0001D2E6": "Watcom int386x core: loads registers from the REGS block and jumps (push+ret) into a table of 'int N; ret' stubs at 1D38C. Native returns can't follow that, so issue the interrupt directly."
+    "0001D2E6": "Watcom int386x core: loads registers from the REGS block and jumps (push+ret) into a table of 'int N; ret' stubs at 1D38C. Native returns can't follow that, so issue the interrupt directly.",
+    "000107C3": "draw_string(x=eax, y=edx, text=ebx): Hangul 16 px (100AB/105B8), ASCII 8 px (101DC/10531). Native hook: translations + proportional ASCII."
   },
   "replace": {
     "0001D2E6": [
@@ -14,5 +15,8 @@
       "m.interrupt((uint8_t)n, 0, 0);",
       "(void)pop32(m);"
     ]
+  },
+  "override": {
+    "000107C3": "gen::text::ttl_draw_string"
   }
 }

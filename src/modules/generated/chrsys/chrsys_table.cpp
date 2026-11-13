@@ -787,6 +787,7 @@ static const LiftedFunction kFunctions[] = {
     {0x3478, 0x0CA9, &F_3478_0CA9},
     {0x354A, 0x0002, &F_354A_0002},
     {0x354A, 0x002C, &F_354A_002C},
+    {0x354A, 0x0039, &F_354A_0039},
     {0x354A, 0x01EE, &F_354A_01EE},
     {0x354A, 0x0222, &F_354A_0222},
     {0x354A, 0x027B, &F_354A_027B},

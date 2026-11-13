@@ -1639,13 +1639,14 @@ L_07F0:
     // 0806: mov word ptr [bp - 0x2a], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-42)), (uint16_t)(c.ax.w));
     // 0809: fpu_emu int 0x3b => fild word ptr [bp - 0x2a]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x0809, "fild word ptr [bp - 0x2a]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-42))));
     // 080D: mov word ptr [bp - 0x2a], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-42)), (uint16_t)(c.ax.w));
     // 0810: fpu_emu int 0x3b => fild word ptr [bp - 0x2a]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x0810, "fild word ptr [bp - 0x2a]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-42))));
     // 0814: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x0814, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 0817: mov ax, word ptr [bp - 8]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-8))));
     // 081A: sub ax, word ptr [bp - 0xc]
@@ -1657,29 +1658,33 @@ L_07F0:
     // 0823: mov word ptr [bp - 0x2a], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-42)), (uint16_t)(c.ax.w));
     // 0826: fpu_emu int 0x3b => fild word ptr [bp - 0x2a]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x0826, "fild word ptr [bp - 0x2a]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-42))));
     // 082A: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x082A, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 082D: fpu_emu int 0x35 => fstp dword ptr [bp - 0x28]
-    m.fpu_emulated(0x35, 0x1A8C, 0x082D, "fstp dword ptr [bp - 0x28]");
+    fst_m32(m, c.ss, (uint16_t)(c.bp.w + (-40)), fst(m, 0));
+    fpop(m);
     // 0831: fpu_emu int 0x35 => fld dword ptr [bp - 0x28]
-    m.fpu_emulated(0x35, 0x1A8C, 0x0831, "fld dword ptr [bp - 0x28]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-40))));
     // 0835: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 0838: fpu_emu int 0x39 => fstp qword ptr [bp - 0x66]
-    m.fpu_emulated(0x39, 0x1A8C, 0x0838, "fstp qword ptr [bp - 0x66]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-102)), fst(m, 0));
+    fpop(m);
     // 083C: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x083C);
+    // FWAIT (Borland FPU emulator)
     // 083E: lcall 0, 0xe94
     push16(m, c.cs); push16(m, 0x0843); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0E94(m);
     // 0843: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 0846: fpu_emu int 0x34 => fdiv dword ptr [0x1e3b]
-    m.fpu_emulated(0x34, 0x1A8C, 0x0846, "fdiv dword ptr [0x1e3b]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1E3B)); fst(m, 0) = a / b; }
     // 084B: fpu_emu int 0x35 => fstp dword ptr [bp - 0x28]
-    m.fpu_emulated(0x35, 0x1A8C, 0x084B, "fstp dword ptr [bp - 0x28]");
+    fst_m32(m, c.ss, (uint16_t)(c.bp.w + (-40)), fst(m, 0));
+    fpop(m);
     // 084F: fpu_emu int 0x35 => fld dword ptr [bp - 0x28]
-    m.fpu_emulated(0x35, 0x1A8C, 0x084F, "fld dword ptr [bp - 0x28]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-40))));
     // 0853: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x0858); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 0858: push ax
@@ -1699,7 +1704,7 @@ L_07F0:
     // 0866: mov byte ptr [bp - 0x19], al
     wr8(m, c.ss, (uint16_t)(c.bp.w + (-25)), (uint8_t)(c.ax.b.l));
     // 0869: fpu_emu int 0x35 => fld dword ptr [bp - 0x28]
-    m.fpu_emulated(0x35, 0x1A8C, 0x0869, "fld dword ptr [bp - 0x28]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-40))));
     // 086D: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x0872); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 0872: push ax
@@ -1887,27 +1892,28 @@ L_094C:
     wr8(m, c.ss, (uint16_t)(c.bp.w + (-27)), (uint8_t)((uint8_t)0x7u));
 L_095C:
     // 095C: fpu_emu int 0x35 => fld dword ptr [bp - 0x28]
-    m.fpu_emulated(0x35, 0x1A8C, 0x095C, "fld dword ptr [bp - 0x28]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-40))));
     // 0960: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x0965); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 0965: mov word ptr [bp - 0x2a], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-42)), (uint16_t)(c.ax.w));
     // 0968: fpu_emu int 0x3b => fild word ptr [bp - 0x2a]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x0968, "fild word ptr [bp - 0x2a]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-42))));
     // 096C: fpu_emu int 0x38 => fmul qword ptr [0x1e3f]
-    m.fpu_emulated(0x38, 0x1A8C, 0x096C, "fmul qword ptr [0x1e3f]");
+    { long double a = fst(m, 0), b = fld_m64(m, c.ds, (uint16_t)(0x1E3F)); fst(m, 0) = a * b; }
     // 0971: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x0976); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 0976: mov word ptr [bp - 0x16], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-22)), (uint16_t)(c.ax.w));
     // 0979: fpu_emu int 0x35 => fld dword ptr [bp - 0x28]
-    m.fpu_emulated(0x35, 0x1A8C, 0x0979, "fld dword ptr [bp - 0x28]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-40))));
     // 097D: fpu_emu int 0x34 => fcomp dword ptr [0x1e47]
-    m.fpu_emulated(0x34, 0x1A8C, 0x097D, "fcomp dword ptr [0x1e47]");
+    fcompare(m, fst(m, 0), fld_m32(m, c.ds, (uint16_t)(0x1E47)));
+    fpop(m);
     // 0982: fpu_emu int 0x39 => fnstsw word ptr [bp - 0x2a]
-    m.fpu_emulated(0x39, 0x1A8C, 0x0982, "fnstsw word ptr [bp - 0x2a]");
+    wr16(m, c.ss, (uint16_t)(c.bp.w + (-42)), m.fpu.sw());
     // 0986: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x0986);
+    // FWAIT (Borland FPU emulator)
     // 0988: mov ax, word ptr [bp - 0x2a]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-42))));
     // 098B: sahf
@@ -1930,13 +1936,14 @@ L_095C:
     { goto L_09C5; }
 L_099F:
     // 099F: fpu_emu int 0x35 => fld dword ptr [bp - 0x28]
-    m.fpu_emulated(0x35, 0x1A8C, 0x099F, "fld dword ptr [bp - 0x28]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-40))));
     // 09A3: fpu_emu int 0x34 => fcomp dword ptr [0x1e4b]
-    m.fpu_emulated(0x34, 0x1A8C, 0x09A3, "fcomp dword ptr [0x1e4b]");
+    fcompare(m, fst(m, 0), fld_m32(m, c.ds, (uint16_t)(0x1E4B)));
+    fpop(m);
     // 09A8: fpu_emu int 0x39 => fnstsw word ptr [bp - 0x2a]
-    m.fpu_emulated(0x39, 0x1A8C, 0x09A8, "fnstsw word ptr [bp - 0x2a]");
+    wr16(m, c.ss, (uint16_t)(c.bp.w + (-42)), m.fpu.sw());
     // 09AC: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x09AC);
+    // FWAIT (Borland FPU emulator)
     // 09AE: mov ax, word ptr [bp - 0x2a]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-42))));
     // 09B1: sahf
@@ -10093,13 +10100,14 @@ L_3280:
     // 3289: mov word ptr [bp - 0x32], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-50)), (uint16_t)(c.ax.w));
     // 328C: fpu_emu int 0x3b => fild word ptr [bp - 0x32]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x328C, "fild word ptr [bp - 0x32]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-50))));
     // 3290: mov word ptr [bp - 0x32], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-50)), (uint16_t)(c.ax.w));
     // 3293: fpu_emu int 0x3b => fild word ptr [bp - 0x32]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3293, "fild word ptr [bp - 0x32]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-50))));
     // 3297: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3297, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 329A: mov ax, word ptr [bp - 8]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-8))));
     // 329D: sub ax, word ptr [bp - 0xc]
@@ -10111,29 +10119,33 @@ L_3280:
     // 32A6: mov word ptr [bp - 0x32], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-50)), (uint16_t)(c.ax.w));
     // 32A9: fpu_emu int 0x3b => fild word ptr [bp - 0x32]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x32A9, "fild word ptr [bp - 0x32]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-50))));
     // 32AD: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x32AD, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 32B0: fpu_emu int 0x35 => fstp dword ptr [bp - 0x30]
-    m.fpu_emulated(0x35, 0x1A8C, 0x32B0, "fstp dword ptr [bp - 0x30]");
+    fst_m32(m, c.ss, (uint16_t)(c.bp.w + (-48)), fst(m, 0));
+    fpop(m);
     // 32B4: fpu_emu int 0x35 => fld dword ptr [bp - 0x30]
-    m.fpu_emulated(0x35, 0x1A8C, 0x32B4, "fld dword ptr [bp - 0x30]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-48))));
     // 32B8: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 32BB: fpu_emu int 0x39 => fstp qword ptr [bp - 0x86]
-    m.fpu_emulated(0x39, 0x1A8C, 0x32BB, "fstp qword ptr [bp - 0x86]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-134)), fst(m, 0));
+    fpop(m);
     // 32C0: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x32C0);
+    // FWAIT (Borland FPU emulator)
     // 32C2: lcall 0, 0xe94
     push16(m, c.cs); push16(m, 0x32C7); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0E94(m);
     // 32C7: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 32CA: fpu_emu int 0x34 => fdiv dword ptr [0x1f48]
-    m.fpu_emulated(0x34, 0x1A8C, 0x32CA, "fdiv dword ptr [0x1f48]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F48)); fst(m, 0) = a / b; }
     // 32CF: fpu_emu int 0x35 => fstp dword ptr [bp - 0x30]
-    m.fpu_emulated(0x35, 0x1A8C, 0x32CF, "fstp dword ptr [bp - 0x30]");
+    fst_m32(m, c.ss, (uint16_t)(c.bp.w + (-48)), fst(m, 0));
+    fpop(m);
     // 32D3: fpu_emu int 0x35 => fld dword ptr [bp - 0x30]
-    m.fpu_emulated(0x35, 0x1A8C, 0x32D3, "fld dword ptr [bp - 0x30]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-48))));
     // 32D7: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x32DC); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 32DC: push ax
@@ -10153,7 +10165,7 @@ L_3280:
     // 32EA: mov byte ptr [bp - 0x19], al
     wr8(m, c.ss, (uint16_t)(c.bp.w + (-25)), (uint8_t)(c.ax.b.l));
     // 32ED: fpu_emu int 0x35 => fld dword ptr [bp - 0x30]
-    m.fpu_emulated(0x35, 0x1A8C, 0x32ED, "fld dword ptr [bp - 0x30]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-48))));
     // 32F1: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x32F6); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 32F6: push ax
@@ -10341,27 +10353,28 @@ L_33D0:
     wr8(m, c.ss, (uint16_t)(c.bp.w + (-27)), (uint8_t)((uint8_t)0x7u));
 L_33E0:
     // 33E0: fpu_emu int 0x35 => fld dword ptr [bp - 0x30]
-    m.fpu_emulated(0x35, 0x1A8C, 0x33E0, "fld dword ptr [bp - 0x30]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-48))));
     // 33E4: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x33E9); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 33E9: mov word ptr [bp - 0x32], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-50)), (uint16_t)(c.ax.w));
     // 33EC: fpu_emu int 0x3b => fild word ptr [bp - 0x32]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x33EC, "fild word ptr [bp - 0x32]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-50))));
     // 33F0: fpu_emu int 0x34 => fmul dword ptr [0x1f4c]
-    m.fpu_emulated(0x34, 0x1A8C, 0x33F0, "fmul dword ptr [0x1f4c]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F4C)); fst(m, 0) = a * b; }
     // 33F5: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x33FA); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 33FA: mov word ptr [bp - 0x16], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-22)), (uint16_t)(c.ax.w));
     // 33FD: fpu_emu int 0x35 => fld dword ptr [bp - 0x30]
-    m.fpu_emulated(0x35, 0x1A8C, 0x33FD, "fld dword ptr [bp - 0x30]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-48))));
     // 3401: fpu_emu int 0x34 => fcomp dword ptr [0x1e47]
-    m.fpu_emulated(0x34, 0x1A8C, 0x3401, "fcomp dword ptr [0x1e47]");
+    fcompare(m, fst(m, 0), fld_m32(m, c.ds, (uint16_t)(0x1E47)));
+    fpop(m);
     // 3406: fpu_emu int 0x39 => fnstsw word ptr [bp - 0x32]
-    m.fpu_emulated(0x39, 0x1A8C, 0x3406, "fnstsw word ptr [bp - 0x32]");
+    wr16(m, c.ss, (uint16_t)(c.bp.w + (-50)), m.fpu.sw());
     // 340A: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x340A);
+    // FWAIT (Borland FPU emulator)
     // 340C: mov ax, word ptr [bp - 0x32]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-50))));
     // 340F: sahf
@@ -10384,13 +10397,14 @@ L_33E0:
     { goto L_3449; }
 L_3423:
     // 3423: fpu_emu int 0x35 => fld dword ptr [bp - 0x30]
-    m.fpu_emulated(0x35, 0x1A8C, 0x3423, "fld dword ptr [bp - 0x30]");
+    fpush(m, fld_m32(m, c.ss, (uint16_t)(c.bp.w + (-48))));
     // 3427: fpu_emu int 0x34 => fcomp dword ptr [0x1e4b]
-    m.fpu_emulated(0x34, 0x1A8C, 0x3427, "fcomp dword ptr [0x1e4b]");
+    fcompare(m, fst(m, 0), fld_m32(m, c.ds, (uint16_t)(0x1E4B)));
+    fpop(m);
     // 342C: fpu_emu int 0x39 => fnstsw word ptr [bp - 0x32]
-    m.fpu_emulated(0x39, 0x1A8C, 0x342C, "fnstsw word ptr [bp - 0x32]");
+    wr16(m, c.ss, (uint16_t)(c.bp.w + (-50)), m.fpu.sw());
     // 3430: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x3430);
+    // FWAIT (Borland FPU emulator)
     // 3432: mov ax, word ptr [bp - 0x32]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-50))));
     // 3435: sahf
@@ -11315,9 +11329,10 @@ L_38E0:
     // 38E0: mov word ptr [bp - 6], di
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-6)), (uint16_t)(c.di.w));
     // 38E3: fpu_emu int 0x3b => fild word ptr [bp - 6]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x38E3, "fild word ptr [bp - 6]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 38E7: fpu_emu int 0x37 => fstp xword ptr [bp - 0x10]
-    m.fpu_emulated(0x37, 0x1A8C, 0x38E7, "fstp xword ptr [bp - 0x10]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-16)), fst(m, 0));
+    fpop(m);
     // 38EB: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 38ED: shl bx, 1
@@ -11331,31 +11346,34 @@ L_38E0:
     // 38F7: mov word ptr [bp - 6], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-6)), (uint16_t)(c.ax.w));
     // 38FA: fpu_emu int 0x3b => fild word ptr [bp - 6]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x38FA, "fild word ptr [bp - 6]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 38FE: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x38FE, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 3903: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 3906: fpu_emu int 0x39 => fstp qword ptr [bp - 0x58]
-    m.fpu_emulated(0x39, 0x1A8C, 0x3906, "fstp qword ptr [bp - 0x58]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-88)), fst(m, 0));
+    fpop(m);
     // 390A: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x390A);
+    // FWAIT (Borland FPU emulator)
     // 390C: lcall 0, 0xfd3
     push16(m, c.cs); push16(m, 0x3911); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0FD3(m);
     // 3911: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 3914: fpu_emu int 0x37 => fld xword ptr [bp - 0x10]
-    m.fpu_emulated(0x37, 0x1A8C, 0x3914, "fld xword ptr [bp - 0x10]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-16))));
     // 3918: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3918, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 391B: mov ax, word ptr [bp + 6]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0x6)));
     // 391E: mov word ptr [bp - 6], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-6)), (uint16_t)(c.ax.w));
     // 3921: fpu_emu int 0x3b => fild word ptr [bp - 6]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3921, "fild word ptr [bp - 6]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 3925: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3925, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 3928: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x392D); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 392D: mov bx, si
@@ -11371,9 +11389,10 @@ L_38E0:
     // 3939: mov word ptr [bp - 6], di
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-6)), (uint16_t)(c.di.w));
     // 393C: fpu_emu int 0x3b => fild word ptr [bp - 6]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x393C, "fild word ptr [bp - 6]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 3940: fpu_emu int 0x37 => fstp xword ptr [bp - 0x10]
-    m.fpu_emulated(0x37, 0x1A8C, 0x3940, "fstp xword ptr [bp - 0x10]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-16)), fst(m, 0));
+    fpop(m);
     // 3944: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 3946: shl bx, 1
@@ -11387,31 +11406,34 @@ L_38E0:
     // 3950: mov word ptr [bp - 6], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-6)), (uint16_t)(c.ax.w));
     // 3953: fpu_emu int 0x3b => fild word ptr [bp - 6]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3953, "fild word ptr [bp - 6]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 3957: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x3957, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 395C: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 395F: fpu_emu int 0x39 => fstp qword ptr [bp - 0x58]
-    m.fpu_emulated(0x39, 0x1A8C, 0x395F, "fstp qword ptr [bp - 0x58]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-88)), fst(m, 0));
+    fpop(m);
     // 3963: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x3963);
+    // FWAIT (Borland FPU emulator)
     // 3965: lcall 0, 0xed8
     push16(m, c.cs); push16(m, 0x396A); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0ED8(m);
     // 396A: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 396D: fpu_emu int 0x37 => fld xword ptr [bp - 0x10]
-    m.fpu_emulated(0x37, 0x1A8C, 0x396D, "fld xword ptr [bp - 0x10]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-16))));
     // 3971: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3971, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 3974: mov ax, word ptr [bp + 8]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0x8)));
     // 3977: mov word ptr [bp - 6], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-6)), (uint16_t)(c.ax.w));
     // 397A: fpu_emu int 0x3b => fild word ptr [bp - 6]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x397A, "fild word ptr [bp - 6]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 397E: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x397E, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 3981: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x3986); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 3986: mov bx, si
@@ -11748,9 +11770,10 @@ L_3B17:
     // 3B17: mov word ptr [bp - 0xa], di
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.di.w));
     // 3B1A: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3B1A, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 3B1E: fpu_emu int 0x37 => fstp xword ptr [bp - 0x14]
-    m.fpu_emulated(0x37, 0x1A8C, 0x3B1E, "fstp xword ptr [bp - 0x14]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-20)), fst(m, 0));
+    fpop(m);
     // 3B22: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 3B24: shl bx, 1
@@ -11764,31 +11787,34 @@ L_3B17:
     // 3B2E: mov word ptr [bp - 0xa], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.ax.w));
     // 3B31: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3B31, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 3B35: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x3B35, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 3B3A: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 3B3D: fpu_emu int 0x39 => fstp qword ptr [bp - 0x5c]
-    m.fpu_emulated(0x39, 0x1A8C, 0x3B3D, "fstp qword ptr [bp - 0x5c]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-92)), fst(m, 0));
+    fpop(m);
     // 3B41: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x3B41);
+    // FWAIT (Borland FPU emulator)
     // 3B43: lcall 0, 0xfd3
     push16(m, c.cs); push16(m, 0x3B48); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0FD3(m);
     // 3B48: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 3B4B: fpu_emu int 0x37 => fld xword ptr [bp - 0x14]
-    m.fpu_emulated(0x37, 0x1A8C, 0x3B4B, "fld xword ptr [bp - 0x14]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 3B4F: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3B4F, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 3B52: mov ax, word ptr [bp - 6]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 3B55: mov word ptr [bp - 0xa], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.ax.w));
     // 3B58: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3B58, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 3B5C: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3B5C, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 3B5F: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x3B64); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 3B64: mov bx, si
@@ -11804,9 +11830,10 @@ L_3B17:
     // 3B70: mov word ptr [bp - 0xa], di
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.di.w));
     // 3B73: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3B73, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 3B77: fpu_emu int 0x37 => fstp xword ptr [bp - 0x14]
-    m.fpu_emulated(0x37, 0x1A8C, 0x3B77, "fstp xword ptr [bp - 0x14]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-20)), fst(m, 0));
+    fpop(m);
     // 3B7B: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 3B7D: shl bx, 1
@@ -11820,31 +11847,34 @@ L_3B17:
     // 3B87: mov word ptr [bp - 0xa], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.ax.w));
     // 3B8A: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3B8A, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 3B8E: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x3B8E, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 3B93: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 3B96: fpu_emu int 0x39 => fstp qword ptr [bp - 0x5c]
-    m.fpu_emulated(0x39, 0x1A8C, 0x3B96, "fstp qword ptr [bp - 0x5c]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-92)), fst(m, 0));
+    fpop(m);
     // 3B9A: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x3B9A);
+    // FWAIT (Borland FPU emulator)
     // 3B9C: lcall 0, 0xed8
     push16(m, c.cs); push16(m, 0x3BA1); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0ED8(m);
     // 3BA1: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 3BA4: fpu_emu int 0x37 => fld xword ptr [bp - 0x14]
-    m.fpu_emulated(0x37, 0x1A8C, 0x3BA4, "fld xword ptr [bp - 0x14]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 3BA8: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3BA8, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 3BAB: mov ax, word ptr [bp - 8]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-8))));
     // 3BAE: mov word ptr [bp - 0xa], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.ax.w));
     // 3BB1: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3BB1, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 3BB5: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3BB5, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 3BB8: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x3BBD); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 3BBD: mov bx, si
@@ -12641,9 +12671,10 @@ L_3F83:
     // 3F86: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 3F89: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3F89, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 3F8D: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x3F8D, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 3F91: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 3F93: shl bx, 1
@@ -12657,31 +12688,34 @@ L_3F83:
     // 3F9E: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 3FA1: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3FA1, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 3FA5: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x3FA5, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 3FAA: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 3FAD: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x3FAD, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 3FB2: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x3FB2);
+    // FWAIT (Borland FPU emulator)
     // 3FB4: lcall 0, 0xfd3
     push16(m, c.cs); push16(m, 0x3FB9); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0FD3(m);
     // 3FB9: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 3FBC: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x3FBC, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 3FC0: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3FC0, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 3FC3: mov ax, word ptr [bp - 0x10]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-16))));
     // 3FC6: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 3FC9: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3FC9, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 3FCD: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x3FCD, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 3FD0: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x3FD5); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 3FD5: mov bx, si
@@ -12699,9 +12733,10 @@ L_3F83:
     // 3FE5: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 3FE8: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x3FE8, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 3FEC: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x3FEC, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 3FF0: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 3FF2: shl bx, 1
@@ -12715,31 +12750,34 @@ L_3F83:
     // 3FFD: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4000: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4000, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4004: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x4004, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 4009: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 400C: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x400C, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 4011: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x4011);
+    // FWAIT (Borland FPU emulator)
     // 4013: lcall 0, 0xed8
     push16(m, c.cs); push16(m, 0x4018); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0ED8(m);
     // 4018: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 401B: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x401B, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 401F: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x401F, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 4022: mov ax, word ptr [bp - 0x12]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-18))));
     // 4025: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4028: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4028, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 402C: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x402C, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 402F: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x4034); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 4034: mov bx, si
@@ -12895,9 +12933,10 @@ L_40F4:
     // 40F7: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 40FA: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x40FA, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 40FE: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x40FE, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 4102: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 4104: shl bx, 1
@@ -12911,31 +12950,34 @@ L_40F4:
     // 410F: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4112: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4112, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4116: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x4116, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 411B: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 411E: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x411E, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 4123: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x4123);
+    // FWAIT (Borland FPU emulator)
     // 4125: lcall 0, 0xfd3
     push16(m, c.cs); push16(m, 0x412A); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0FD3(m);
     // 412A: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 412D: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x412D, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 4131: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x4131, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 4134: mov ax, word ptr [bp - 0x10]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-16))));
     // 4137: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 413A: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x413A, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 413E: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x413E, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 4141: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x4146); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 4146: mov bx, si
@@ -12953,9 +12995,10 @@ L_40F4:
     // 4156: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4159: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4159, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 415D: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x415D, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 4161: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 4163: shl bx, 1
@@ -12969,31 +13012,34 @@ L_40F4:
     // 416E: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4171: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4171, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4175: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x4175, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 417A: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 417D: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x417D, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 4182: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x4182);
+    // FWAIT (Borland FPU emulator)
     // 4184: lcall 0, 0xed8
     push16(m, c.cs); push16(m, 0x4189); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0ED8(m);
     // 4189: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 418C: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x418C, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 4190: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x4190, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 4193: mov ax, word ptr [bp - 0x12]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-18))));
     // 4196: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4199: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4199, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 419D: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x419D, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 41A0: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x41A5); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 41A5: mov bx, si
@@ -13151,9 +13197,10 @@ L_4269:
     // 426C: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 426F: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x426F, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4273: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x4273, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 4277: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 4279: shl bx, 1
@@ -13167,31 +13214,34 @@ L_4269:
     // 4284: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4287: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4287, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 428B: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x428B, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 4290: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 4293: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x4293, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 4298: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x4298);
+    // FWAIT (Borland FPU emulator)
     // 429A: lcall 0, 0xfd3
     push16(m, c.cs); push16(m, 0x429F); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0FD3(m);
     // 429F: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 42A2: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x42A2, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 42A6: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x42A6, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 42A9: mov ax, word ptr [bp - 0x10]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-16))));
     // 42AC: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 42AF: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x42AF, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 42B3: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x42B3, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 42B6: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x42BB); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 42BB: mov bx, si
@@ -13209,9 +13259,10 @@ L_4269:
     // 42CB: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 42CE: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x42CE, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 42D2: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x42D2, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 42D6: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 42D8: shl bx, 1
@@ -13225,31 +13276,34 @@ L_4269:
     // 42E3: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 42E6: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x42E6, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 42EA: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x42EA, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 42EF: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 42F2: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x42F2, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 42F7: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x42F7);
+    // FWAIT (Borland FPU emulator)
     // 42F9: lcall 0, 0xed8
     push16(m, c.cs); push16(m, 0x42FE); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0ED8(m);
     // 42FE: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 4301: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x4301, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 4305: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x4305, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 4308: mov ax, word ptr [bp - 0x12]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-18))));
     // 430B: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 430E: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x430E, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4312: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x4312, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 4315: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x431A); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 431A: mov bx, si
@@ -13407,9 +13461,10 @@ L_43DE:
     // 43E1: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 43E4: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x43E4, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 43E8: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x43E8, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 43EC: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 43EE: shl bx, 1
@@ -13423,31 +13478,34 @@ L_43DE:
     // 43F9: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 43FC: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x43FC, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4400: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x4400, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 4405: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 4408: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x4408, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 440D: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x440D);
+    // FWAIT (Borland FPU emulator)
     // 440F: lcall 0, 0xfd3
     push16(m, c.cs); push16(m, 0x4414); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0FD3(m);
     // 4414: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 4417: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x4417, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 441B: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x441B, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 441E: mov ax, word ptr [bp - 0x10]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-16))));
     // 4421: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4424: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4424, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4428: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x4428, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 442B: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x4430); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 4430: mov bx, si
@@ -13465,9 +13523,10 @@ L_43DE:
     // 4440: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4443: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4443, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4447: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x4447, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 444B: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 444D: shl bx, 1
@@ -13481,31 +13540,34 @@ L_43DE:
     // 4458: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 445B: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x445B, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 445F: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x445F, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 4464: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 4467: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x4467, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 446C: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x446C);
+    // FWAIT (Borland FPU emulator)
     // 446E: lcall 0, 0xed8
     push16(m, c.cs); push16(m, 0x4473); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0ED8(m);
     // 4473: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 4476: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x4476, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 447A: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x447A, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 447D: mov ax, word ptr [bp - 0x12]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-18))));
     // 4480: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4483: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4483, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4487: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x4487, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 448A: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x448F); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 448F: mov bx, si
@@ -13663,9 +13725,10 @@ L_4553:
     // 4556: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4559: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4559, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 455D: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x455D, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 4561: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 4563: shl bx, 1
@@ -13679,31 +13742,34 @@ L_4553:
     // 456E: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4571: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4571, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 4575: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x4575, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 457A: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 457D: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x457D, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 4582: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x4582);
+    // FWAIT (Borland FPU emulator)
     // 4584: lcall 0, 0xfd3
     push16(m, c.cs); push16(m, 0x4589); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0FD3(m);
     // 4589: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 458C: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x458C, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 4590: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x4590, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 4593: mov ax, word ptr [bp - 0x10]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-16))));
     // 4596: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 4599: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x4599, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 459D: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x459D, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 45A0: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x45A5); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 45A5: mov bx, si
@@ -13721,9 +13787,10 @@ L_4553:
     // 45B5: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 45B8: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x45B8, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 45BC: fpu_emu int 0x37 => fstp xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x45BC, "fstp xword ptr [bp - 0x1e]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-30)), fst(m, 0));
+    fpop(m);
     // 45C0: mov bx, si
     c.bx.w = (uint16_t)(c.si.w);
     // 45C2: shl bx, 1
@@ -13737,31 +13804,34 @@ L_4553:
     // 45CD: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 45D0: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x45D0, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 45D4: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x45D4, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 45D9: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 45DC: fpu_emu int 0x39 => fstp qword ptr [bp - 0x156]
-    m.fpu_emulated(0x39, 0x1A8C, 0x45DC, "fstp qword ptr [bp - 0x156]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-342)), fst(m, 0));
+    fpop(m);
     // 45E1: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x45E1);
+    // FWAIT (Borland FPU emulator)
     // 45E3: lcall 0, 0xed8
     push16(m, c.cs); push16(m, 0x45E8); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0ED8(m);
     // 45E8: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 45EB: fpu_emu int 0x37 => fld xword ptr [bp - 0x1e]
-    m.fpu_emulated(0x37, 0x1A8C, 0x45EB, "fld xword ptr [bp - 0x1e]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-30))));
     // 45EF: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x45EF, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 45F2: mov ax, word ptr [bp - 0x12]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-18))));
     // 45F5: mov word ptr [bp - 0x14], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-20)), (uint16_t)(c.ax.w));
     // 45F8: fpu_emu int 0x3b => fild word ptr [bp - 0x14]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x45F8, "fild word ptr [bp - 0x14]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 45FC: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x45FC, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 45FF: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x4604); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 4604: mov bx, si
@@ -18878,39 +18948,43 @@ L_5FA6:
     // 5FAB: mov word ptr [bp - 0xc], di
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-12)), (uint16_t)(c.di.w));
     // 5FAE: fpu_emu int 0x3b => fild word ptr [bp - 0xc]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x5FAE, "fild word ptr [bp - 0xc]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-12))));
     // 5FB2: fpu_emu int 0x37 => fstp xword ptr [bp - 0x16]
-    m.fpu_emulated(0x37, 0x1A8C, 0x5FB2, "fstp xword ptr [bp - 0x16]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-22)), fst(m, 0));
+    fpop(m);
     // 5FB6: mov ax, word ptr [bp - 0xa]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 5FB9: mov word ptr [bp - 0xc], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-12)), (uint16_t)(c.ax.w));
     // 5FBC: fpu_emu int 0x3b => fild word ptr [bp - 0xc]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x5FBC, "fild word ptr [bp - 0xc]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-12))));
     // 5FC0: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x5FC0, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 5FC5: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 5FC8: fpu_emu int 0x39 => fstp qword ptr [bp - 0x22]
-    m.fpu_emulated(0x39, 0x1A8C, 0x5FC8, "fstp qword ptr [bp - 0x22]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-34)), fst(m, 0));
+    fpop(m);
     // 5FCC: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x5FCC);
+    // FWAIT (Borland FPU emulator)
     // 5FCE: lcall 0, 0xfd3
     push16(m, c.cs); push16(m, 0x5FD3); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0FD3(m);
     // 5FD3: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 5FD6: fpu_emu int 0x37 => fld xword ptr [bp - 0x16]
-    m.fpu_emulated(0x37, 0x1A8C, 0x5FD6, "fld xword ptr [bp - 0x16]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-22))));
     // 5FDA: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x5FDA, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 5FDD: mov ax, word ptr [bp + 6]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0x6)));
     // 5FE0: mov word ptr [bp - 0xc], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-12)), (uint16_t)(c.ax.w));
     // 5FE3: fpu_emu int 0x3b => fild word ptr [bp - 0xc]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x5FE3, "fild word ptr [bp - 0xc]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-12))));
     // 5FE7: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x5FE7, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 5FEA: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x5FEF); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 5FEF: mov word ptr [bp - 6], ax
@@ -18918,39 +18992,43 @@ L_5FA6:
     // 5FF2: mov word ptr [bp - 0xc], di
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-12)), (uint16_t)(c.di.w));
     // 5FF5: fpu_emu int 0x3b => fild word ptr [bp - 0xc]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x5FF5, "fild word ptr [bp - 0xc]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-12))));
     // 5FF9: fpu_emu int 0x37 => fstp xword ptr [bp - 0x16]
-    m.fpu_emulated(0x37, 0x1A8C, 0x5FF9, "fstp xword ptr [bp - 0x16]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-22)), fst(m, 0));
+    fpop(m);
     // 5FFD: mov ax, word ptr [bp - 0xa]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 6000: mov word ptr [bp - 0xc], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-12)), (uint16_t)(c.ax.w));
     // 6003: fpu_emu int 0x3b => fild word ptr [bp - 0xc]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x6003, "fild word ptr [bp - 0xc]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-12))));
     // 6007: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x6007, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 600C: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 600F: fpu_emu int 0x39 => fstp qword ptr [bp - 0x22]
-    m.fpu_emulated(0x39, 0x1A8C, 0x600F, "fstp qword ptr [bp - 0x22]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-34)), fst(m, 0));
+    fpop(m);
     // 6013: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x6013);
+    // FWAIT (Borland FPU emulator)
     // 6015: lcall 0, 0xed8
     push16(m, c.cs); push16(m, 0x601A); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0ED8(m);
     // 601A: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 601D: fpu_emu int 0x37 => fld xword ptr [bp - 0x16]
-    m.fpu_emulated(0x37, 0x1A8C, 0x601D, "fld xword ptr [bp - 0x16]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-22))));
     // 6021: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x6021, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 6024: mov ax, word ptr [bp + 8]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0x8)));
     // 6027: mov word ptr [bp - 0xc], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-12)), (uint16_t)(c.ax.w));
     // 602A: fpu_emu int 0x3b => fild word ptr [bp - 0xc]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x602A, "fild word ptr [bp - 0xc]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-12))));
     // 602E: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x602E, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 6031: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x6036); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 6036: mov word ptr [bp - 8], ax
@@ -21068,37 +21146,41 @@ L_6A7B:
     // 6A82: mov word ptr [bp - 0xa], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.ax.w));
     // 6A85: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x6A85, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 6A89: fpu_emu int 0x37 => fstp xword ptr [bp - 0x14]
-    m.fpu_emulated(0x37, 0x1A8C, 0x6A89, "fstp xword ptr [bp - 0x14]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-20)), fst(m, 0));
+    fpop(m);
     // 6A8D: mov ax, word ptr [bp - 6]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 6A90: mov word ptr [bp - 0xa], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.ax.w));
     // 6A93: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x6A93, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 6A97: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x6A97, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 6A9C: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 6A9F: fpu_emu int 0x39 => fstp qword ptr [bp - 0x38]
-    m.fpu_emulated(0x39, 0x1A8C, 0x6A9F, "fstp qword ptr [bp - 0x38]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-56)), fst(m, 0));
+    fpop(m);
     // 6AA3: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x6AA3);
+    // FWAIT (Borland FPU emulator)
     // 6AA5: lcall 0, 0xfd3
     push16(m, c.cs); push16(m, 0x6AAA); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0FD3(m);
     // 6AAA: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 6AAD: fpu_emu int 0x37 => fld xword ptr [bp - 0x14]
-    m.fpu_emulated(0x37, 0x1A8C, 0x6AAD, "fld xword ptr [bp - 0x14]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 6AB1: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x6AB1, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 6AB4: mov word ptr [bp - 0xa], di
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.di.w));
     // 6AB7: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x6AB7, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 6ABB: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x6ABB, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 6ABE: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x6AC3); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 6AC3: mov word ptr [bp - 0x20], ax
@@ -21108,39 +21190,43 @@ L_6A7B:
     // 6AC9: mov word ptr [bp - 0xa], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.ax.w));
     // 6ACC: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x6ACC, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 6AD0: fpu_emu int 0x37 => fstp xword ptr [bp - 0x14]
-    m.fpu_emulated(0x37, 0x1A8C, 0x6AD0, "fstp xword ptr [bp - 0x14]");
+    fst_m80(m, c.ss, (uint16_t)(c.bp.w + (-20)), fst(m, 0));
+    fpop(m);
     // 6AD4: mov ax, word ptr [bp - 6]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 6AD7: mov word ptr [bp - 0xa], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.ax.w));
     // 6ADA: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x6ADA, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 6ADE: fpu_emu int 0x34 => fdiv dword ptr [0x1f5a]
-    m.fpu_emulated(0x34, 0x1A8C, 0x6ADE, "fdiv dword ptr [0x1f5a]");
+    { long double a = fst(m, 0), b = fld_m32(m, c.ds, (uint16_t)(0x1F5A)); fst(m, 0) = a / b; }
     // 6AE3: sub sp, 8
     { uint16_t t = op_sub<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 6AE6: fpu_emu int 0x39 => fstp qword ptr [bp - 0x38]
-    m.fpu_emulated(0x39, 0x1A8C, 0x6AE6, "fstp qword ptr [bp - 0x38]");
+    fst_m64(m, c.ss, (uint16_t)(c.bp.w + (-56)), fst(m, 0));
+    fpop(m);
     // 6AEA: int 0x3d
-    m.interrupt(0x3D, 0x1A8C, 0x6AEA);
+    // FWAIT (Borland FPU emulator)
     // 6AEC: lcall 0, 0xed8
     push16(m, c.cs); push16(m, 0x6AF1); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_0ED8(m);
     // 6AF1: add sp, 8
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x8u); c.sp.w = (uint16_t)(t); }
     // 6AF4: fpu_emu int 0x37 => fld xword ptr [bp - 0x14]
-    m.fpu_emulated(0x37, 0x1A8C, 0x6AF4, "fld xword ptr [bp - 0x14]");
+    fpush(m, fld_m80(m, c.ss, (uint16_t)(c.bp.w + (-20))));
     // 6AF8: fpu_emu int 0x3a => fmulp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x6AF8, "fmulp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a * b; }
+    fpop(m);
     // 6AFB: mov ax, word ptr [bp + 8]
     c.ax.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0x8)));
     // 6AFE: mov word ptr [bp - 0xa], ax
     wr16(m, c.ss, (uint16_t)(c.bp.w + (-10)), (uint16_t)(c.ax.w));
     // 6B01: fpu_emu int 0x3b => fild word ptr [bp - 0xa]
-    m.fpu_emulated(0x3B, 0x1A8C, 0x6B01, "fild word ptr [bp - 0xa]");
+    fpush(m, fld_m16i(m, c.ss, (uint16_t)(c.bp.w + (-10))));
     // 6B05: fpu_emu int 0x3a => faddp st(1)
-    m.fpu_emulated(0x3A, 0x1A8C, 0x6B05, "faddp st(1)");
+    { long double a = fst(m, 1), b = fst(m, 0); fst(m, 1) = a + b; }
+    fpop(m);
     // 6B08: lcall 0, 0x1025
     push16(m, c.cs); push16(m, 0x6B0D); c.cs = (uint16_t)(0x0 + kLoadSeg); F_0000_1025(m);
     // 6B0D: mov word ptr [bp - 0x2c], ax

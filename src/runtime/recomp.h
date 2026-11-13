@@ -6,3 +6,4 @@
 #include "machine.h"
 #include "alu.h"
 #include "memory.h"
+#include "fpu.h"

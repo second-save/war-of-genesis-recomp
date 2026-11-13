@@ -18,6 +18,20 @@ union Reg {
     } b;
 };
 
+// x87 FPU state. Values are kept as long double (on arm64 macOS that is a
+// double, which is enough for this game's arithmetic).
+struct Fpu {
+    long double st[8]{};
+    uint8_t top = 0;
+    uint8_t tag = 0xFF;          // bit i set = physical register i empty
+    uint16_t cw = 0x037F;
+    uint8_t c0 = 0, c1 = 0, c2 = 0, c3 = 0;
+    uint16_t sw() const {
+        return static_cast<uint16_t>((c0 << 8) | (c1 << 9) | (c2 << 10) | ((top & 7) << 11) | (c3 << 14));
+    }
+    void init() { top = 0; tag = 0xFF; cw = 0x037F; c0 = c1 = c2 = c3 = 0; }
+};
+
 struct Cpu {
     Reg ax{}, bx{}, cx{}, dx{}, si{}, di{}, bp{}, sp{};
     uint16_t cs = 0, ds = 0, es = 0, ss = 0, fs = 0, gs = 0;

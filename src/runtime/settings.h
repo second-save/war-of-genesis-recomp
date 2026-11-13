@@ -24,8 +24,11 @@ struct Settings {
     int voice_volume = 100;
 
     // Language: "ko" (original) or a translation in lang/<code>/ (e.g. "en").
-    std::string language = "ko";
+    std::string language = "en";
     std::string lang_dir;  // optional override of the translation folder
+
+    // The player's DOS game folder (copied once to game/ next to this file).
+    std::string game_dir;
 
     // Window
     bool fullscreen = false;

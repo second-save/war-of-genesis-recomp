@@ -86,6 +86,7 @@ void Settings::load() {
         else if (k == "voice_volume") voice_volume = std::clamp(std::atoi(v.c_str()), 0, 100);
         else if (k == "language") language = v;
         else if (k == "lang_dir") lang_dir = v;
+        else if (k == "game_dir") game_dir = v;
         else if (k == "fullscreen") fullscreen = parse_bool(v);
         else if (k == "smooth_scaling") smooth_scaling = parse_bool(v);
     }
@@ -96,7 +97,11 @@ void Settings::save() const {
     if (!f) return;
     f << "# The War of Genesis (native port) settings.\n"
          "# Key names are SDL names: Up, Down, Left, Right, Return, Space, Z, X, Backspace, Keypad 8, ...\n\n"
-         "[controls]\n"
+         "[game]\n"
+         "# Your DOS game folder. It is copied once into game/ next to this file; the game runs\n"
+         "# and saves there. Delete game/ to copy it again.\n"
+      << "game_dir = " << game_dir << "\n\n"
+      << "[controls]\n"
          "# Move the game's pointer with the keyboard (toggle in game with F12).\n"
          "# When on, the keys below drive the pointer and are not sent to the game.\n"
       << "keyboard_pointer = " << (keyboard_pointer ? "on" : "off") << "\n"
@@ -113,7 +118,7 @@ void Settings::save() const {
       << "# Digitized sound (Sound Blaster): the Softmax logo voice.\n"
       << "voice_volume = " << voice_volume << "\n\n"
       << "[language]\n"
-      << "# ko = original Korean; en = English translation (files in lang/en next to the game binary)\n"
+      << "# en = English translation, ko = original Korean\n"
       << "language = " << language << "\n"
       << (lang_dir.empty() ? "" : "lang_dir = " + lang_dir + "\n") << "\n"
       << "[video]\n"
