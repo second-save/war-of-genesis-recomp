@@ -12,6 +12,7 @@
 #include "settings.h"
 #include "modules/generated/chp/chp_decl.h"
 #include "modules/generated/pack/pack_decl.h"
+#include "modules/generated/chrsys/chrsys_decl.h"
 #include "subsystems/dos.h"
 
 #include <fstream>
@@ -76,7 +77,7 @@ const std::string* marker_text(Machine& m, const std::string& s) {
 
 // Short strings drawn verbatim (names, labels): lang/<code>/STRINGS.TXT holds
 // "<Johab text><TAB><replacement>" lines.
-const std::string* string_text(Machine& m, const std::string& s) {
+const std::string* string_text(Machine& m, const std::string& s, bool* compacted = nullptr) {
     static std::unordered_map<std::string, std::string> table;
     static bool loaded = false;
     if (!loaded) {
@@ -89,11 +90,28 @@ const std::string* string_text(Machine& m, const std::string& s) {
         }
     }
     auto it = table.find(s);
-    return it == table.end() ? nullptr : &it->second;
+    if (it != table.end()) return &it->second;
+    // Names are often padded for centring (" 이 올 린", " 듀    란 "): retry
+    // without spaces, keeping one leading space if the original had one.
+    static std::unordered_map<std::string, std::string> compact;
+    static std::unordered_map<std::string, std::string> results;
+    if (compact.empty())
+        for (const auto& [k, v] : table) {
+            std::string ck;
+            for (char ch : k) if (ch != ' ') ck += ch;
+            compact.emplace(ck, v);
+        }
+    std::string ck;
+    for (char ch : s) if (ch != ' ') ck += ch;
+    auto ct = compact.find(ck);
+    if (ct == compact.end() || ck.size() == s.size()) return nullptr;
+    std::string r = (!s.empty() && s[0] == ' ' ? " " : "") + ct->second;
+    if (compacted) *compacted = true;
+    return &(results[s] = r);
 }
 
 // Read a null-terminated string and apply the translation tables.
-std::string translated_string(Machine& m, uint16_t seg, uint16_t off) {
+std::string translated_string(Machine& m, uint16_t seg, uint16_t off, size_t* padded_width = nullptr) {
     std::string text;
     for (uint16_t p = off; text.size() < 2048; ++p) {
         uint8_t ch = rd8(m, seg, p);
@@ -101,7 +119,13 @@ std::string translated_string(Machine& m, uint16_t seg, uint16_t off) {
         text += static_cast<char>(ch);
     }
     if (const std::string* t = marker_text(m, text)) return *t;
-    if (const std::string* t = string_text(m, text)) return *t;
+    bool compacted = false;
+    if (const std::string* t = string_text(m, text, &compacted)) {
+        // A name padded with spaces for centring (matched without its spaces):
+        // report its original width (8 px per byte) so the caller can centre it.
+        if (padded_width && compacted) *padded_width = text.size() * 8;
+        return *t;
+    }
     return text;
 }
 
@@ -234,76 +258,128 @@ void chp_print_prologue(Machine& m, FunctionPointer original) {
     chp_typeset(m, original, 0x139E, gen::mod_chp::F_139E_03AC);
 }
 
-// PACK 268D:0689  draw_string(x, y, char far* text)  (town talk, menus, gprintf)
-// Hangul composes a 16x16 glyph, ASCII copies 16 font bytes (font at DS:9D8C)
-// into the glyph descriptor at DS:9D54 = {width-1, height-1, bitmap}; both are
-// drawn by 268D:048D in the current draw mode. With a translation active,
-// "@@id" markers are replaced and ASCII is set proportionally: each glyph is
-// shifted to its first used column and the descriptor width set to its advance,
-// so even opaque draw modes leave no gaps.
-void pack_draw_string(Machine& m, FunctionPointer original) {
+// draw_string(x, y, char far* text): the graphics library's text routine, linked
+// into CHP (1F17:067F, map/menus), PACK (268D:0689, towns) and CHRSYS
+// (3778:05F8, battles) at different addresses. Hangul composes a 16x16 glyph,
+// ASCII copies 16 font bytes into a glyph descriptor {width-1, height-1,
+// bitmap}; both are drawn by a helper in the current draw mode.
+// With a translation active: "@@id" markers and the string table are applied,
+// and ASCII is set proportionally (each glyph shifted to its first used column,
+// the descriptor width set to its advance so opaque modes leave no gaps).
+struct LibText {
+    uint16_t seg, load_seg;
+    FunctionPointer init, colour, draw, finish;
+    uint16_t cur_x, cur_y;           // pen position
+    uint16_t col0, col1, col2;       // colour/mode arguments to `colour`
+    uint16_t desc, glyph, font;      // ASCII descriptor, its bitmap, 8x16 font
+    const char* name;
+};
+
+static void lib_draw_string(Machine& m, FunctionPointer original, const LibText& L) {
     if (!translation_active()) {
         original(m);
         return;
     }
-    using namespace gen::mod_pack;
     Cpu& c = m.cpu;
     const uint16_t sp = c.sp.w;
     auto arg = [&](int i) { return rd16(m, c.ss, static_cast<uint16_t>(sp + 4 + 2 * i)); };
     const int x0 = static_cast<int16_t>(arg(0)), y0 = static_cast<int16_t>(arg(1));
-    const uint16_t str_off = arg(2), str_seg = arg(3);
-    std::string text = translated_string(m, str_seg, str_off);
+    size_t padded = 0;
+    std::string text = translated_string(m, arg(3), arg(2), &padded);
     bool hangul = false;
     for (unsigned char ch : text) hangul |= ch > 0x7F;
     const uint16_t ds = c.ds;
     if (std::getenv("GENESIS_TRACE_TEXT"))
-        std::fprintf(stderr, "[TEXT] pack '%s' desc %04X %04X %04X %04X\n", text.c_str(), rd16(m, ds, 0x9D54),
-                     rd16(m, ds, 0x9D56), rd16(m, ds, 0x9D68), rd16(m, ds, 0x9D6A));
-    if (hangul || rd16(m, ds, 0x9D54) != 7 || rd16(m, ds, 0x9D56) != 15) {
+        std::fprintf(stderr, "[TEXT] %s '%s'\n", L.name, text.c_str());
+    if (hangul || rd16(m, ds, L.desc) != 7 || rd16(m, ds, L.desc + 2) != 15) {
         original(m);  // Korean text, or a layout we don't know: the game's own code
         return;
     }
     const uint16_t saved_si = c.si.w, saved_di = c.di.w, saved_bp = c.bp.w;
-    auto call = [&](FunctionPointer fn, std::initializer_list<uint16_t> a) {
-        far_call(m, 0x268D, fn, a, kLoadSeg);
-    };
-    wr16(m, ds, 0x9D52, static_cast<uint16_t>(x0));
-    wr16(m, ds, 0x9D50, static_cast<uint16_t>(y0));
-    call(F_268D_0405, {});
-    call(F_268D_0363, {rd16(m, ds, 0x9D4A), rd16(m, ds, 0x9D48), rd16(m, ds, 0x9D46)});
-    int x = x0, y = y0;
-    for (unsigned char ch : text) {
-        if (ch == '\n') {
-            x = x0;
-            y += 16;
-            continue;
-        }
-        uint8_t rows[16], bits = 0;
-        for (int r = 0; r < 16; ++r) {
-            rows[r] = rd8(m, ds, static_cast<uint16_t>(0x9D8C + ch * 16 + r));
-            bits |= rows[r];
-        }
-        int first = 0, last = -1;
+    auto call = [&](FunctionPointer fn, std::initializer_list<uint16_t> a) { far_call(m, L.seg, fn, a, L.load_seg); };
+    wr16(m, ds, L.cur_x, static_cast<uint16_t>(x0));
+    wr16(m, ds, L.cur_y, static_cast<uint16_t>(y0));
+    call(L.init, {});
+    call(L.colour, {rd16(m, ds, L.col0), rd16(m, ds, L.col1), rd16(m, ds, L.col2)});
+    // Glyph columns used: [first, last]; digits stay 8 px wide so numbers line up in tables.
+    auto metrics = [&](unsigned char ch, int& first, int& last) {
+        uint8_t bits = 0;
+        for (int r = 0; r < 16; ++r) bits |= rd8(m, ds, static_cast<uint16_t>(L.font + ch * 16 + r));
+        first = 0;
+        last = -1;
         for (int col = 0; col < 8; ++col)
             if (bits & (0x80 >> col)) {
                 if (last < first) first = col;
                 last = col;
             }
-        int adv = (ch == ' ' || last < first) ? 4 : (last - first + 2);
-        for (int r = 0; r < 16; ++r) wr8(m, ds, static_cast<uint16_t>(0x9D58 + r), static_cast<uint8_t>(rows[r] << first));
-        wr16(m, ds, 0x9D54, static_cast<uint16_t>(adv - 1));  // stored as width - 1
-        call(F_268D_048D, {static_cast<uint16_t>(x), static_cast<uint16_t>(y), 0x9D54, ds});
+        if (ch >= '0' && ch <= '9') {
+            first = 0;
+            last = 6;
+        }
+        return (ch == ' ' || last < first) ? 4 : (last - first + 2);
+    };
+    int x = x0, y = y0;
+    if (padded && text.find('\n') == std::string::npos) {
+        int w = 0;
+        for (unsigned char ch : text) {
+            int f, l;
+            w += metrics(ch, f, l);
+        }
+        if (static_cast<int>(padded) > w) x += (static_cast<int>(padded) - w) / 2;
+    }
+    for (size_t i = 0; i < text.size(); ++i) {
+        unsigned char ch = static_cast<unsigned char>(text[i]);
+        if (ch == '\n') {
+            x = x0;
+            y += 16;
+            continue;
+        }
+        if (ch == ' ') {
+            // Runs of spaces line text up with fixed graphics (buttons, columns):
+            // keep the original 8 px per space there; a lone space is narrow.
+            bool run = (i > 0 && text[i - 1] == ' ') || (i + 1 < text.size() && text[i + 1] == ' ');
+            x += run ? 8 : 4;
+            continue;
+        }
+        int first, last;
+        int adv = metrics(ch, first, last);
+        for (int r = 0; r < 16; ++r)
+            wr8(m, ds, static_cast<uint16_t>(L.glyph + r),
+                static_cast<uint8_t>(rd8(m, ds, static_cast<uint16_t>(L.font + ch * 16 + r)) << first));
+        wr16(m, ds, L.desc, static_cast<uint16_t>(adv - 1));  // stored as width - 1
+        call(L.draw, {static_cast<uint16_t>(x), static_cast<uint16_t>(y), L.desc, ds});
         x += adv;
     }
-    wr16(m, ds, 0x9D54, 7);
-    wr16(m, ds, 0x9D52, static_cast<uint16_t>(x));
-    wr16(m, ds, 0x9D50, static_cast<uint16_t>(y));
-    call(F_268D_0443, {});
+    wr16(m, ds, L.desc, 7);
+    wr16(m, ds, L.cur_x, static_cast<uint16_t>(x));
+    wr16(m, ds, L.cur_y, static_cast<uint16_t>(y));
+    call(L.finish, {});
     c.si.w = saved_si;
     c.di.w = saved_di;
     c.bp.w = saved_bp;
     (void)pop16(m);
     c.cs = pop16(m);
+}
+
+void pack_draw_string(Machine& m, FunctionPointer original) {
+    using namespace gen::mod_pack;
+    static const LibText L{0x268D, kLoadSeg, F_268D_0405, F_268D_0363, F_268D_048D, F_268D_0443,
+                           0x9D52, 0x9D50, 0x9D4A, 0x9D48, 0x9D46, 0x9D54, 0x9D58, 0x9D8C, "pack"};
+    lib_draw_string(m, original, L);
+}
+
+void chp_draw_string(Machine& m, FunctionPointer original) {
+    using namespace gen::mod_chp;
+    static const LibText L{0x1F17, kLoadSeg, F_1F17_03FB, F_1F17_0359, F_1F17_0483, F_1F17_0439,
+                           0x94EA, 0x94E8, 0x94E2, 0x94E0, 0x94DE, 0x94EC, 0x94F0, 0x9524, "chp"};
+    lib_draw_string(m, original, L);
+}
+
+void chrsys_draw_string(Machine& m, FunctionPointer original) {
+    using namespace gen::mod_chrsys;
+    static const LibText L{0x3778, kLoadSeg, F_3778_03C4, F_3778_034C, F_3778_0447, F_3778_0403,
+                           0x83D0, 0x83CE, 0x83C8, 0x83C6, 0x83C4, 0x83D2, 0x83D6, 0x840A, "chrsys"};
+    lib_draw_string(m, original, L);
 }
 
 }  // namespace gen::text

@@ -15,9 +15,13 @@
     "35FA:06D5": "INT 33h AX=0Ch mouse event handler",
     "3084:00FE": "end of row-copy loop to VRAM: present the frame",
     "0000:1C6C": "C runtime exit hook stored as a far pointer (closes open streams)",
-    "0000:3836": "printf output callback, passed to __vprinter as a near pointer (call word ptr [bp+0Eh])"
+    "0000:3836": "printf output callback, passed to __vprinter as a near pointer (call word ptr [bp+0Eh])",
+    "3778:05F8": "draw_string(x, y, far text): battle and status text. Native hook: translations + proportional ASCII."
   },
   "inject_after": {
     "3084:00FE": "m.frame_sync();"
+  },
+  "override": {
+    "3778:05F8": "gen::text::chrsys_draw_string"
   }
 }

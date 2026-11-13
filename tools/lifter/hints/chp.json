@@ -19,13 +19,15 @@
     "181A:0084": "rep movsd to VRAM: present the frame",
     "0000:0D48": "C runtime exit hook stored as a far pointer (closes open streams)",
     "1247:084D": "print_text(x, y, far text, right, bottom): dialogue/story typesetter. Native hook adds proportional ASCII + word wrap for translations.",
-    "1247:0994": "Same typesetter as 1247:084D for chapter prologue pages (PE<n>), clearing with 139E:03AC."
+    "1247:0994": "Same typesetter as 1247:084D for chapter prologue pages (PE<n>), clearing with 139E:03AC.",
+    "1F17:067F": "draw_string(x, y, far text): map, menus and prompts. Native hook: translations + proportional ASCII."
   },
   "inject_after": {
     "181A:0084": "m.frame_sync();"
   },
   "override": {
     "1247:084D": "gen::text::chp_print_text",
-    "1247:0994": "gen::text::chp_print_prologue"
+    "1247:0994": "gen::text::chp_print_prologue",
+    "1F17:067F": "gen::text::chp_draw_string"
   }
 }

@@ -92,9 +92,11 @@ naming choices (`glossary.tsv`). Town talk lines don't fit the game's 26-byte
 records, so the built files hold `@@id` markers and the text lives in
 `lang/en/TEXT.TXT`; the PACK text hook swaps them in.
 
-Status: all story dialogue, chapter prologues, town talk and NPC names are
-translated. Not yet: menus and prompts (drawn by other routines), battle
-scenarios, item/magic/class names, and Korean text baked into images.
+Status: all story dialogue, chapter prologues, town talk, NPC and character
+names, and the menus, prompts and labels in CHP, PACK and CHRSYS are
+translated (`tools/text/exe_strings.py` lists the program strings). Not yet:
+battle scenarios (briefings, battle dialogue), item/magic/class names, the
+title menu (TTL) and Korean text baked into images.
 
 ## Debugging aids
 

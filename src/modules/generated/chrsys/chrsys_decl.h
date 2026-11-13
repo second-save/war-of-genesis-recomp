@@ -883,4 +883,6 @@ void F_3778_0403(Machine& m);
 void F_3778_0447(Machine& m);
 void F_3778_05F8(Machine& m);
 void F_3778_083E(Machine& m);
+void F_3778_05F8_orig(Machine& m);
 }  // namespace
+namespace gen::text { void chrsys_draw_string(Machine& m, FunctionPointer original); }

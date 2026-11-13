@@ -52,6 +52,157 @@
 해적선장	Pirate Captain
 헌터	Hunter
 호떡할배	Pancake Man
-마을에 들어가겠습니까?	Enter the village?
-예	Yes
-아니오	No
+# Menus, prompts and labels in the programs (tools/text/exe_strings.py lists them).
+# Keys keep their exact spacing; runs of 2+ spaces keep 8 px per space when drawn.
+ 봉인지에 클릭하면 언제든지	 Click the sealed place to
+봉인지내부로 출입이 가능합니다.	go in and out at any time.
+게임데이타를 저장중입니다.	Saving game data...
+ 마을에 들어가겠습니까?	 Enter the village?
+예        아니오	Yes        No
+게임 으로	Back
+이동 속도	Move Speed
+배경 음악	Music
+사 운 드	Sound
+게임 종료	Quit Game
+전직  모드	Classes
+세  이  브	Save
+아이템 모드	Items
+게임  으로	Back to Game
+피리어드 제한 기간	Period Limit
+전직 불가능	Cannot change
+이 아이템은 버릴 수 없습니다!	This item can't be discarded!
+아이템 장착	Equip Item
+아이템 교환	Trade Item
+아이템 버리기	Discard Item
+ 메인  메뉴	 Main Menu
+선 장	Captain
+목적지는?	Where to?
+커티스	Cutis
+와이번	Wyvern
+아스타니아	Astania
+예   아니요	Yes   No
+가진돈이 부족합니다!	Not enough money!
+그럼 출발합니다!	Then let's go!
+그럼 다음 기회에..	Another time, then...
+지금은 항해를 할 수	We can't sail
+없습니다.	right now.
+자 그럼 항해를 떠나겠	Well then, we're
+습니다!	setting sail!
+다음날 아침///	The next morning...
+당신을 고용하고 싶소.	I'd like to hire you.
+좋소. 나의 계약금은...	Fine. My fee is...
+싫소. 거절하겠소.	No. I refuse.
+당신은 별로 믿음직스럽지	You don't look very
+못하군, 싫소.	trustworthy. No.
+다른데 가서 알아보슈.	Try somewhere else.
+훗, 풋내기가 나를 고용	Hah, a greenhorn wants
+한다구? 꺼져!	to hire me? Get lost!
+미안하지만 지금은 사양	Sorry, but I must
+하겠소.	decline for now.
+자 합니다. 좋습니까?	is the offer. Agreed?
+좋소. 이번일의 급료는...	Fine. My pay for this job is...
+좋소. 잘부탁하오.	Fine. Glad to work with you.
+미안합니다. 사양하겠소.	Sorry. I'll pass.
+여기서 투숙하시렵니까?	Will you stay here?
+여기서 몇일을 보내시렵니까?	How many days will you stay?
+사겠습니까?     예   아니요	Buy it?        Yes   No
+이 아이템은 팔 수 없습니다!	This item can't be sold!
+팔겠습니까?     예   아니요	Sell it?        Yes   No
+이용병을 고용하겠습니까?	Hire this mercenary?
+현재 아군인원이 다 찼습니다!	Your party is full!
+좋소. 같이 갑시다.	Fine. Let's go together.
+직업:	Class:
+성별:	Sex:
+레벨:	Level:
+계약금:	Fee:
+고용하겠습니까?     예   아니요	Hire them?          Yes   No
+- 데리고 가겠습니까?	- take along?
+급료:	Pay:
+계약하겠습니까?     예   아니요	Sign contract?      Yes   No
+아이템 장  착	Equip Item
+아이템 교  환	Trade Item
+동 료  해  고 	Dismiss Ally
+아이템 보  관	Store Item
+필수 인물은 해고를 할수 없습니다!	Key members can't be dismissed!
+여분공간이 없습니다.	No space left.
+보물상자	Treasure Chest
+일반TILE	Normal tile
+용병배치	Mercenaries
+이 름	Name
+대화 번호	Talk No.
+이동 범위	Move Range
+맵번호 : 	Map No.: 
+등장인물	Characters
+금지 타일	Blocked tile
+아이템	Items
+상점	Shop
+세이브	Save
+로드	Load
+창고ITEM	Storage
+게임으로	Back to Game
+마을 번호	Town No.
+경험치 	EXP 
+ 점 획득!	 gained!
+화염	Fire
+빙한	Ice
+전격	Bolt
+회복	Heal
+보조	Aid
+소환	Summon
+암흑	Dark
+검	Sword
+도끼	Axe
+창	Spear
+활	Bow
+이 아이템을 버릴까요?	Discard this item?
+버릴수 없는 아이템입니다.	This item can't be discarded.
+맞지 않는 ITEM입니다.	This item doesn't fit.
+양손 무기입니다.	That's a two-handed weapon.
+방패가 아닙니다.	That's not a shield.
+양손 무기 장착중입니다.	A two-handed weapon is equipped.
+맞지않는 Item입니다.	This item doesn't fit.
+여기가 좋습니까?	Place here?
+소 환 수	Summons
+후퇴한 유닛이 없읍니다.	No units have retreated.
+배치를 종료합니까?	Finish deployment?
+음악을 켭니다.	Music on.
+음악을 끕니다.	Music off.
+효과음을 켭니다.	Sound effects on.
+효과음을 끕니다.	Sound effects off.
+전  군    후  퇴	Full  Retreat
+시간  간격	Time Interval
+임무 (성공/실패 조건)	Mission (win/lose conditions)
+전투를 처음부터 다시.	Restart the battle.
+음악  설정	Music
+켜기    끄기	On      Off
+효과음설정	Sound FX
+ 게임 시작 화면으로. 	 Back to the title. 
+   게임을 끝냅니다.  	   Quit the game.  
+# Character names (also matched with centring spaces removed).
+이올린	Iyolin
+라시드	Rashid
+듀란	Duran
+로카르노	Locarno
+죠엘	Joel
+사이브리드	Cybrid
+캐빈	Kevin
+신디	Cindy
+로빈	Robin
+기쉬네	Gishne
+크로우	Crow
+카자	Kaja
+알시아	Arcia
+다이커스	Daicus
+에리히	Erich
+스트라이더	Strider
+드라우프니르	Draupnir
+모젤	Mozel
+하야	Haya
+레이몬드	Raymond
+바자	Baja
+베라딘	Beradin
+그리니드	Grinid
+하이젠버그	Heisenberg
+슈리	Shuri
+아론다이트	Arondight
+아이스	Ice

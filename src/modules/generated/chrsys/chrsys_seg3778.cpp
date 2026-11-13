@@ -1237,7 +1237,10 @@ L_05E0:
     (void)pop16(m); c.cs = pop16(m); return;
 }
 
-void F_3778_05F8(Machine& m) {
+// Overridden by hints/chrsys.json: calls go to gen::text::chrsys_draw_string, which may call the original.
+void F_3778_05F8(Machine& m) { gen::text::chrsys_draw_string(m, &F_3778_05F8_orig); }
+
+void F_3778_05F8_orig(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;
     // 05F8: enter 0xa, 0
