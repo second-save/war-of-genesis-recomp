@@ -1,10 +1,8 @@
 {
   "exe": "CHP.EXE",
-  "functions": 447,
-  "speculative": 13,
-  "instructions": 34851,
+  "functions": 456,
+  "speculative": 12,
+  "instructions": 35318,
   "unimplemented": {},
-  "warnings": [
-    "unmodelled relocation in 1D4E:002D 'mov eax, 0x4524' (byte 2)"
-  ]
+  "warnings": []
 }

@@ -1,0 +1,12 @@
+{
+  "exe": "TTL.EXE",
+  "functions": 343,
+  "speculative": 41,
+  "instructions": 15852,
+  "unimplemented": {
+    "ljmp": 1,
+    "bound": 2,
+    "arpl": 1
+  },
+  "warnings": []
+}

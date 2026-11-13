@@ -66,7 +66,6 @@ L_002C:
 L_004E:
     // 004E: mov cx, word ptr [bp + 0xe]
     c.cx.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0xE)));
-    if (c.cx.w == 0) { goto L_0063_pop; }
     // 0051: mov ah, byte ptr [si]
     c.ax.b.h = (uint8_t)(rd8(m, c.ds, (uint16_t)(c.si.w)));
 L_0053:
@@ -89,7 +88,6 @@ L_005A:
     { uint16_t t = op_dec<uint16_t>(c, c.bx.w); c.bx.w = (uint16_t)(t); }
     // 0061: jne 0x4e
     if (!c.zf) { m.poll_tick(); goto L_004E; }
-L_0063_pop:
     // 0063: pop es
     { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
     // 0064: pop ds

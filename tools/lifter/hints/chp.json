@@ -1,5 +1,25 @@
 {
   "functions": [
-    "0000:2F3B"
-  ]
+    "0000:2F3B",
+    "0000:2C80",
+    "02F7:0003",
+    "1E35:0004",
+    "1E40:00CD",
+    "1D9D:0499",
+    "1D9D:06F2",
+    "0000:0D48"
+  ],
+  "comments": {
+    "0000:2C80": "vsprintf output callback (passed as a near function pointer)",
+    "02F7:0003": "INT 1Ch game tick ISR",
+    "1E35:0004": "INT 09h keyboard ISR",
+    "1E40:00CD": "INT 08h music ISR (PIT reprogrammed to ~880 Hz)",
+    "1D9D:0499": "INT 33h AX=0Ch mouse event handler",
+    "1D9D:06F2": "INT 33h AX=0Ch mouse event handler (with cursor drawing)",
+    "181A:0084": "rep movsd to VRAM: present the frame",
+    "0000:0D48": "C runtime exit hook stored as a far pointer (closes open streams)"
+  },
+  "inject_after": {
+    "181A:0084": "m.frame_sync();"
+  }
 }

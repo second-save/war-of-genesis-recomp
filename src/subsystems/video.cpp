@@ -1,6 +1,7 @@
 // Video subsystem implementation for SDL2 rendering, VGA DAC, and VESA support.
 #include "video.h"
 #include "runtime/machine.h"
+#include "runtime/settings.h"
 
 #include <SDL.h>
 #include <cstdio>
@@ -45,8 +46,24 @@ bool VideoSubsystem::init(const std::string& title) {
         renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_SOFTWARE);
     }
 
+    title_ = title;
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, Settings::get().smooth_scaling ? "linear" : "nearest");
     set_mode(VideoMode::Mode13h_320x200);
+    update_title();
+    apply_fullscreen();
     return true;
+}
+
+void VideoSubsystem::update_title() {
+    if (!window_) return;
+    std::string t = title_ + (Settings::get().keyboard_pointer ? "  [keyboard pointer on: F12 to switch off]"
+                                                                : "  [F12: keyboard pointer, F11: fullscreen]");
+    SDL_SetWindowTitle(window_, t.c_str());
+}
+
+void VideoSubsystem::apply_fullscreen() {
+    if (!window_) return;
+    SDL_SetWindowFullscreen(window_, Settings::get().fullscreen ? SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
 void VideoSubsystem::shutdown() {
@@ -211,7 +228,7 @@ void VideoSubsystem::handle_int10() {
 void VideoSubsystem::set_vesa_bank(uint8_t bank) {
     if (mode_ == VideoMode::Vesa_640x480) {
         // Save current 64KB window into vesa_vram_
-        uint8_t* vram_win = machine_.ptr(0xA000, 0);
+        uint8_t* vram_win = &machine_.ram[0xA0000];
         std::memcpy(&vesa_vram_[static_cast<size_t>(vesa_bank_) * 65536], vram_win, 65536);
 
         vesa_bank_ = bank;
@@ -298,13 +315,13 @@ void VideoSubsystem::present_frame() {
 
     if (mode_ == VideoMode::Mode13h_320x200) {
         // Mode 13h: VRAM at 0xA000:0000 (0xA0000), 64,000 bytes (320x200)
-        const uint8_t* vram = machine_.ptr(0xA000, 0);
+        const uint8_t* vram = &machine_.ram[0xA0000];
         for (int i = 0; i < 320 * 200; ++i) {
             rgba_buffer_[i] = palette_[vram[i]];
         }
     } else if (mode_ == VideoMode::Vesa_640x480) {
         // Flush active window into vesa_vram_
-        const uint8_t* vram_win = machine_.ptr(0xA000, 0);
+        const uint8_t* vram_win = &machine_.ram[0xA0000];
         std::memcpy(&vesa_vram_[static_cast<size_t>(vesa_bank_) * 65536], vram_win, 65536);
 
         // Convert full 640x480 screen from dedicated VESA VRAM
@@ -334,7 +351,7 @@ void VideoSubsystem::present_frame() {
                 if (FILE* f = std::fopen(path, "wb")) {
                     std::fwrite(palette_, sizeof(palette_), 1, f);
                     const uint8_t* idx = (mode_ == VideoMode::Vesa_640x480) ? vesa_vram_.data()
-                                                                            : machine_.ptr(0xA000, 0);
+                                                                            : &machine_.ram[0xA0000];
                     std::fwrite(idx, 1, static_cast<size_t>(screen_width_) * screen_height_, f);
                     std::fclose(f);
                 }

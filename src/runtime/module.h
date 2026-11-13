@@ -25,6 +25,21 @@ struct LiftedModule {
     uint16_t init_ip;
 };
 
+// 32-bit protected-mode (LE) modules: functions keyed by linear address.
+struct LiftedFunction32 {
+    uint32_t addr;
+    FunctionPointer fn;
+};
+
+struct LiftedModule32 {
+    const char* name;
+    const char* filename;
+    const LiftedFunction32* functions;
+    size_t num_functions;
+    uint32_t entry;
+    uint32_t initial_esp;
+};
+
 struct ProcessTerminated {
     int exit_code;
 };

@@ -42,7 +42,20 @@ def main():
             print(f"[ERR] Failed to lift {exe_name} (code {ret.returncode})")
             sys.exit(ret.returncode)
 
-    print("\nAll 16-bit modules successfully recompiled to C++!")
+    # TTL.EXE: 32-bit DOS/4GW title program.
+    cmd = [sys.executable, str(BASE_DIR / "tools" / "lifter" / "lift_le.py"), str(GAME_DIR / "TTL.EXE"),
+           "--name", "ttl", "--out", str(OUT_BASE / "ttl")]
+    hint_file = BASE_DIR / "tools" / "lifter" / "hints" / "ttl.json"
+    if hint_file.exists():
+        cmd.extend(["--hints", str(hint_file)])
+    print("============================================================")
+    print(f" Lifting TTL.EXE -> {OUT_BASE / 'ttl'}")
+    print("============================================================")
+    ret = subprocess.run(cmd)
+    if ret.returncode != 0:
+        sys.exit(ret.returncode)
+
+    print("\nAll modules successfully recompiled to C++!")
 
 if __name__ == "__main__":
     main()

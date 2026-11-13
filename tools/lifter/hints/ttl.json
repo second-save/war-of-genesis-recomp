@@ -1,0 +1,18 @@
+{
+  "comments": {
+    "0001D2E6": "Watcom int386x core: loads registers from the REGS block and jumps (push+ret) into a table of 'int N; ret' stubs at 1D38C. Native returns can't follow that, so issue the interrupt directly."
+  },
+  "replace": {
+    "0001D2E6": [
+      "uint32_t n = c.si.e;",
+      "c.es = rd16(m, c.ds, c.bx.e);",
+      "uint16_t bpv = rd16(m, c.ds, c.bx.e + 6);",
+      "uint32_t r = c.di.e;",
+      "c.ax.e = rd32(m, c.ds, r); c.bx.e = rd32(m, c.ds, r + 4); c.cx.e = rd32(m, c.ds, r + 8);",
+      "c.dx.e = rd32(m, c.ds, r + 12); c.si.e = rd32(m, c.ds, r + 16); c.di.e = rd32(m, c.ds, r + 20);",
+      "c.bp.w = bpv; c.ds = bpv;",
+      "m.interrupt((uint8_t)n, 0, 0);",
+      "(void)pop32(m);"
+    ]
+  }
+}

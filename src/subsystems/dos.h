@@ -36,20 +36,32 @@ public:
     // Path resolution (case-insensitive, backslash normalization)
     std::filesystem::path resolve_path(const std::string& dos_path) const;
 
+    bool host_file_exists(const std::string& dos_name) const;
+    int run_shell_command(const std::string& tail);
+
     // Interrupt handlers
     void handle_int21();
     void handle_int2f();
     void handle_xms_call();
 
-    // Memory allocator (DOS paragraphs)
-    uint16_t dos_alloc_paras(uint16_t paras);
+    // Memory allocator (DOS paragraphs). Blocks live in conventional memory
+    // [psp, kMemTop); each block has an (unwritten) MCB paragraph before it.
+    struct MemBlock { uint16_t seg; uint16_t paras; };
+    static constexpr uint16_t kMemTop = 0xA000;
+    // Returns segment, or 0 on failure with *largest set to the largest free block.
+    uint16_t dos_alloc_paras(uint16_t paras, uint16_t* largest = nullptr);
     bool dos_free_paras(uint16_t seg);
-    bool dos_realloc_paras(uint16_t seg, uint16_t new_paras);
+    // On failure *max_paras is set to the largest size the block can grow to.
+    bool dos_realloc_paras(uint16_t seg, uint16_t new_paras, uint16_t* max_paras = nullptr);
+    // A newly loaded program owns all memory from its PSP to kMemTop.
+    void reset_memory(uint16_t psp_seg);
 
-    uint16_t heap_next_seg() const { return heap_next_seg_; }
-    void set_heap_next_seg(uint16_t seg) { heap_next_seg_ = seg; }
+    std::vector<MemBlock> memory_blocks() const { return blocks_; }
+    void set_memory_blocks(std::vector<MemBlock> b) { blocks_ = std::move(b); }
 
 private:
+    // Pointer argument in DX (EDX for protected-mode programs).
+    uint32_t pdx() const;
     Machine& machine_;
     std::filesystem::path base_dir_;
 
@@ -59,18 +71,28 @@ private:
 
     // Disk Transfer Area (DTA) address
     uint16_t dta_seg_ = 0;
-    uint16_t dta_off_ = 0x80;
+    uint32_t dta_off_ = 0x80;
+    int last_exit_code_ = 0;
 
-    // Dynamic heap allocation for DOS malloc (starts after program image)
-    uint16_t heap_next_seg_ = 0x6000;
+    // Allocated blocks, sorted by segment.
+    std::vector<MemBlock> blocks_;
 
     // XMS management (extended memory allocated at high RAM offsets)
     static constexpr size_t kMaxXmsBlocks = 32;
     XmsBlock xms_blocks_[kMaxXmsBlocks];
     uint32_t xms_next_offset_ = 0x200000; // 2 MB offset in machine RAM
 
+    // FindFirst/FindNext state (INT 21h AH=4Eh/4Fh)
+    struct FindResult { std::string name; uint8_t attr; uint32_t size; };
+    std::vector<FindResult> find_results_;
+    size_t find_pos_ = 0;
+    void find_first(const std::string& dos_pattern, uint16_t attrs);
+    void find_next();
+    void parse_fcb_name();
+    static bool trace_files();
+
     // Helper to read null-terminated string from memory
-    std::string read_dos_string(uint16_t seg, uint16_t off) const;
+    std::string read_dos_string(uint16_t seg, uint32_t off) const;
 };
 
 }  // namespace gen

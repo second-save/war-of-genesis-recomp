@@ -8261,6 +8261,32 @@ L_2BEE:
     (void)pop16(m); c.cs = pop16(m); return;
 }
 
+void F_077A_2BF0(Machine& m) {
+    Cpu& c = m.cpu;
+    (void)c;
+    // 2BF0: cmp byte ptr [0x34f], 0
+    op_sub<uint8_t>(c, rd8(m, c.ds, (uint16_t)(0x34F)), (uint8_t)0x0u);
+    // 2BF5: je 0x2c07
+    if (c.zf) { goto L_2C07; }
+    // 2BF7: mov al, byte ptr [0x4f0b]
+    c.ax.b.l = (uint8_t)(rd8(m, c.ds, (uint16_t)(0x4F0B)));
+    // 2BFA: mov ah, 0
+    c.ax.b.h = (uint8_t)((uint8_t)0x0u);
+    // 2BFC: inc ax
+    { uint16_t t = op_inc<uint16_t>(c, c.ax.w); c.ax.w = (uint16_t)(t); }
+    // 2BFD: mov bx, 3
+    c.bx.w = (uint16_t)((uint16_t)0x3u);
+    // 2C00: cdq
+    c.dx.w = (c.ax.w & 0x8000) ? 0xFFFF : 0;
+    // 2C01: idiv bx
+    op_idiv16(m, c.bx.w);
+    // 2C03: mov byte ptr [0x4f0b], dl
+    wr8(m, c.ds, (uint16_t)(0x4F0B), (uint8_t)(c.dx.b.l));
+L_2C07:
+    // 2C07: retf
+    (void)pop16(m); c.cs = pop16(m); return;
+}
+
 void F_077A_2C08(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;

@@ -1,6 +1,7 @@
 // Main entry point for The War of Genesis native static recompilation.
 #include "runtime/machine.h"
-#include "runtime/boot_sequence.h"
+#include "runtime/settings.h"
+#include <fstream>
 #include "subsystems/video.h"
 #include "subsystems/audio.h"
 #include "subsystems/dos.h"
@@ -15,6 +16,7 @@ extern const LiftedModule kLifted_main;
 extern const LiftedModule kLifted_chp;
 extern const LiftedModule kLifted_pack;
 extern const LiftedModule kLifted_chrsys;
+extern const LiftedModule32 kLifted_ttl;
 }
 
 #include <csignal>
@@ -28,6 +30,7 @@ extern const LiftedModule kLifted_chrsys;
 #include <sstream>
 #include <vector>
 namespace {
+SDL_Window* g_machine_window = nullptr;
 struct ScriptedInput { uint32_t at; std::string what; };
 std::vector<ScriptedInput> g_script;
 size_t g_script_pos = 0;
@@ -44,19 +47,26 @@ void schedule_release(uint32_t now, const std::string& what) {
 Uint32 scripted_input_tick(Uint32 interval, void*) {
     uint32_t now = SDL_GetTicks() - g_script_start;
     while (g_script_pos < g_script.size() && g_script[g_script_pos].at <= now) {
-        const std::string& w = g_script[g_script_pos++].what;
+        const std::string w = g_script[g_script_pos++].what;  // copy: schedule_release may reallocate
+        if (std::getenv("GENESIS_TRACE_SCRIPT")) std::fprintf(stderr, "[SCRIPT] t=%u %s (%zu/%zu)\n", now, w.c_str(), g_script_pos, g_script.size());
         SDL_Event ev{};
         if (w.rfind("click@", 0) == 0) {
             int x = 0, y = 0;
             std::sscanf(w.c_str() + 6, "%d,%d", &x, &y);
             ev.type = SDL_MOUSEMOTION;
-            ev.motion.x = x * 2; ev.motion.y = y * 2;  // window is 2x the game size
+            // Window coordinates for game-screen pixel (x, y); SDL maps them back to
+            // screen pixels like real events (the window must be at its default 2x size).
+            Uint32 wid = g_machine_window ? SDL_GetWindowID(g_machine_window) : 0;
+            ev.motion.windowID = wid;
+            ev.motion.x = x; ev.motion.y = y;  // game-screen pixels, as SDL reports real events
             SDL_PushEvent(&ev);
             ev = SDL_Event{};
             ev.type = SDL_MOUSEBUTTONDOWN;
             ev.button.button = SDL_BUTTON_LEFT;
-            ev.button.x = x * 2; ev.button.y = y * 2;
-            SDL_PushEvent(&ev);
+            ev.button.windowID = wid;
+            ev.button.x = x; ev.button.y = y;
+            int pushed = SDL_PushEvent(&ev);
+            std::fprintf(stderr, "[INPUT] t=%u click %d,%d%s\n", now, x, y, pushed == 1 ? "" : " (push failed)");
             schedule_release(now, "~mouseup");
             continue;
         }
@@ -116,6 +126,7 @@ static void crash_handler(int sig) {
 }
 
 int main(int argc, char* argv[]) {
+    std::setvbuf(stdout, nullptr, _IOLBF, 0);  // keep log lines ordered with stderr
     stack_t alt_stack;
     alt_stack.ss_sp = std::malloc(SIGSTKSZ * 4);
     alt_stack.ss_size = SIGSTKSZ * 4;
@@ -164,6 +175,8 @@ int main(int argc, char* argv[]) {
         std::fprintf(stderr, "[ERR] SDL_Init failed: %s\n", SDL_GetError());
     }
 
+    gen::Settings::get().load();
+    std::cout << "[INFO] Settings: " << gen::Settings::get().path << "\n";
     start_scripted_input();
     gen::Machine machine;
     g_machine = &machine;
@@ -174,26 +187,37 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     machine.audio->init();
+    machine.audio->music_volume = gen::Settings::get().music_volume * 256 / 100;
+    machine.audio->sfx_volume = gen::Settings::get().voice_volume * 256 / 100;
+    g_machine_window = machine.video->window();
+    SDL_ShowCursor(SDL_DISABLE);  // the game draws its own pointer
 
-    // Run the authentic Softmax boot sequence (Softmax Logo + Voice, Game Title Logo)
-    // unless explicitly running a specific submodule directly or --skip-boot requested
-    if (!skip_boot && module_to_run == "main") {
-        gen::run_boot_sequence(machine, data_dir);
-        if (!machine.running) {
-            return 0;
+    int exit_code = 0;
+    if (module_to_run == "main" && !skip_boot) {
+        // G.COM, the game's launcher, is a compiled batch file:
+        //   :LOOP / TTL / IF EXIST $ GOTO JUMP / GOTO EXIT / :JUMP / MAIN / GOTO LOOP
+        // TTL (title, menus, intro/ending) leaves "$" behind when the game should start.
+        for (;;) {
+            std::cout << "[INFO] Running TTL.EXE (title)\n";
+            exit_code = machine.run_le(&gen::kLifted_ttl, cmd_args);
+            if (machine.quit_requested || !machine.dos->host_file_exists("$")) break;
+            std::cout << "[INFO] Running MAIN.EXE\n";
+            exit_code = machine.run_module(&gen::kLifted_main, cmd_args);
+            if (machine.quit_requested) break;
         }
+        std::cout << "[INFO] Game exited (code " << exit_code << ")\n";
+        return 0;
     }
 
-    // Setup handshake file for MAIN.EXE: pass.
-    std::filesystem::path pass_file = data_dir / "CSTLDATA" / "pass.";
-    if (!std::filesystem::exists(pass_file)) {
-        std::ofstream pf(pass_file);
-        pf << "OK";
+    if (module_to_run == "main") {
+        // --skip-boot: start MAIN directly, as TTL would for "continue".
+        std::ofstream(data_dir / "CSTLDATA" / "PASS") << "";
     }
 
     std::cout << "[INFO] Loading recompiled module: " << module_to_run << "\n";
-    int exit_code = 0;
-    if (module_to_run == "main") {
+    if (module_to_run == "ttl") {
+        exit_code = machine.run_le(&gen::kLifted_ttl, cmd_args);
+    } else if (module_to_run == "main") {
         exit_code = machine.run_module(&gen::kLifted_main, cmd_args);
     } else if (module_to_run == "chp") {
         exit_code = machine.run_module(&gen::kLifted_chp, cmd_args);

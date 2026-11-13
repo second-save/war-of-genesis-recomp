@@ -3,13 +3,121 @@
 namespace gen::mod_chp {
 
 void F_02F7_0003(Machine& m) {
-    uint16_t dgroup = static_cast<uint16_t>(0x4524 + kLoadSeg);
-    uint16_t cnt = static_cast<uint16_t>(rd16(m, dgroup, 0x3B30) + 1);
-    wr16(m, dgroup, 0x3B30, cnt);
-    uint16_t rate = rd16(m, dgroup, 0x94);
-    if (rate == 0 || (cnt % rate) == 0) {
-        wr8(m, dgroup, 0x3B2E, 1);
-    }
+    Cpu& c = m.cpu;
+    (void)c;
+    // 0003: push ax
+    push16(m, c.ax.w);
+    // 0004: push bx
+    push16(m, c.bx.w);
+    // 0005: push cx
+    push16(m, c.cx.w);
+    // 0006: push dx
+    push16(m, c.dx.w);
+    // 0007: push es
+    push16(m, c.es);
+    // 0008: push ds
+    push16(m, c.ds);
+    // 0009: push si
+    push16(m, c.si.w);
+    // 000A: push di
+    push16(m, c.di.w);
+    // 000B: push bp
+    push16(m, c.bp.w);
+    // 000C: mov bp, 0x4524
+    c.bp.w = (uint16_t)((uint16_t)(0x4524 + kLoadSeg));
+    // 000F: mov ds, bp
+    c.ds = (uint16_t)(c.bp.w);
+    // 0011: pushf
+    push16(m, c.flags16());
+    // 0012: lcall [0x3b2a]
+    { uint16_t o = rd16(m, c.ds, (uint16_t)(0x3B2A)); uint16_t s = rd16(m, c.ds, (uint16_t)(0x3B2C)); push16(m, c.cs); push16(m, 0x0016); c.cs = s; m.call_far(s, o); }
+    // 0016: cli
+    c.ifl = 0;
+    // 0017: pushf
+    push16(m, c.flags16());
+    // 0018: push gs
+    push16(m, c.gs);
+    // 001A: push fs
+    push16(m, c.fs);
+    // 001C: push ds
+    push16(m, c.ds);
+    // 001D: push es
+    push16(m, c.es);
+    // 001E: push eax
+    push32(m, c.ax.e);
+    // 0020: push ebx
+    push32(m, c.bx.e);
+    // 0022: push ecx
+    push32(m, c.cx.e);
+    // 0024: push edx
+    push32(m, c.dx.e);
+    // 0026: push esi
+    push32(m, c.si.e);
+    // 0028: push edi
+    push32(m, c.di.e);
+    // 002A: mov ax, 0x4524
+    c.ax.w = (uint16_t)((uint16_t)(0x4524 + kLoadSeg));
+    // 002D: mov ds, ax
+    c.ds = (uint16_t)(c.ax.w);
+    // 002F: inc word ptr [0x3b30]
+    { uint16_t t = op_inc<uint16_t>(c, rd16(m, c.ds, (uint16_t)(0x3B30))); wr16(m, c.ds, (uint16_t)(0x3B30), (uint16_t)(t)); }
+    // 0033: mov ax, word ptr [0x3b30]
+    c.ax.w = (uint16_t)(rd16(m, c.ds, (uint16_t)(0x3B30)));
+    // 0036: xor dx, dx
+    { uint16_t t = op_xor<uint16_t>(c, c.dx.w, c.dx.w); c.dx.w = (uint16_t)(t); }
+    // 0038: div word ptr [0x94]
+    op_div16(m, rd16(m, c.ds, (uint16_t)(0x94)));
+    // 003C: or dx, dx
+    { uint16_t t = op_or<uint16_t>(c, c.dx.w, c.dx.w); c.dx.w = (uint16_t)(t); }
+    // 003E: jne 0x45
+    if (!c.zf) { goto L_0045; }
+    // 0040: mov byte ptr [0x3b2e], 1
+    wr8(m, c.ds, (uint16_t)(0x3B2E), (uint8_t)((uint8_t)0x1u));
+L_0045:
+    // 0045: pop edi
+    { uint32_t t = pop32(m); c.di.e = (uint32_t)(t); }
+    // 0047: pop esi
+    { uint32_t t = pop32(m); c.si.e = (uint32_t)(t); }
+    // 0049: pop edx
+    { uint32_t t = pop32(m); c.dx.e = (uint32_t)(t); }
+    // 004B: pop ecx
+    { uint32_t t = pop32(m); c.cx.e = (uint32_t)(t); }
+    // 004D: pop ebx
+    { uint32_t t = pop32(m); c.bx.e = (uint32_t)(t); }
+    // 004F: pop eax
+    { uint32_t t = pop32(m); c.ax.e = (uint32_t)(t); }
+    // 0051: pop es
+    { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
+    // 0052: pop ds
+    { uint16_t t = pop16(m); c.ds = (uint16_t)(t); }
+    // 0053: pop fs
+    { uint16_t t = pop16(m); c.fs = (uint16_t)(t); }
+    // 0055: pop gs
+    { uint16_t t = pop16(m); c.gs = (uint16_t)(t); }
+    // 0057: popf
+    c.set_flags16((uint16_t)pop16(m));
+    // 0058: sti
+    c.ifl = 1; m.poll_tick();
+    // 0059: pop bp
+    { uint16_t t = pop16(m); c.bp.w = (uint16_t)(t); }
+    // 005A: pop di
+    { uint16_t t = pop16(m); c.di.w = (uint16_t)(t); }
+    // 005B: pop si
+    { uint16_t t = pop16(m); c.si.w = (uint16_t)(t); }
+    // 005C: pop ds
+    { uint16_t t = pop16(m); c.ds = (uint16_t)(t); }
+    // 005D: pop es
+    { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
+    // 005E: pop dx
+    { uint16_t t = pop16(m); c.dx.w = (uint16_t)(t); }
+    // 005F: pop cx
+    { uint16_t t = pop16(m); c.cx.w = (uint16_t)(t); }
+    // 0060: pop bx
+    { uint16_t t = pop16(m); c.bx.w = (uint16_t)(t); }
+    // 0061: pop ax
+    { uint16_t t = pop16(m); c.ax.w = (uint16_t)(t); }
+    // 0062: iret
+    (void)pop16(m); c.cs = pop16(m); c.set_flags16(pop16(m)); return;
 }
 
 void F_02F7_0063(Machine& m) {

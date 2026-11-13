@@ -3677,7 +3677,7 @@ L_1386:
     wr8(m, c.ds, (uint16_t)((-31438)), (uint8_t)((uint8_t)0x0u));
 L_13A0:
     // 13A0: lcall 0x1deb, 2
-    push16(m, c.cs); push16(m, 0x13A5); c.cs = (uint16_t)(0x1DEB + kLoadSeg); F_1133_CB82(m);
+    push16(m, c.cs); push16(m, 0x13A5); c.cs = (uint16_t)(0x1DEB + kLoadSeg); F_1DEB_0002(m);
     // 13A5: jmp 0xb5b
     { m.poll_tick(); goto L_0B5B; }
 L_13A8:

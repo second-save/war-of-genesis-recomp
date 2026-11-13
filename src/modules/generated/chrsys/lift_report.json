@@ -1,10 +1,8 @@
 {
   "exe": "CHRSYS.EXE",
-  "functions": 868,
-  "speculative": 69,
-  "instructions": 69061,
+  "functions": 875,
+  "speculative": 66,
+  "instructions": 69415,
   "unimplemented": {},
-  "warnings": [
-    "unmodelled relocation in 3410:002A 'mov eax, 0x5026' (byte 2)"
-  ]
+  "warnings": []
 }

@@ -1,3 +1,5 @@
+#include <execinfo.h>
+#include <cstdlib>
 // Machine implementation: hardware dispatch, interrupt routing, and MZ loading.
 #include "machine.h"
 #include "subsystems/video.h"
@@ -30,6 +32,140 @@ Machine::Machine() {
         m.cpu.cs = pop16(m); // Return CS
     });
     ram[phys_addr(0x0070, 0x0010)] = 0xCB; // RETF opcode
+
+    install_bios_vectors();
+}
+
+// Minimal BIOS interrupt handlers so programs that hook a vector and chain to
+// the previous handler (pushf; call far [old]) land somewhere sensible.
+void Machine::install_bios_vectors() {
+    auto iret = [](Machine& m) {
+        (void)pop16(m);
+        m.cpu.cs = pop16(m);
+        m.cpu.set_flags16(pop16(m));
+    };
+    // INT 08h: advance the BIOS tick count, then run the user tick (INT 1Ch).
+    register_synthetic_function(0xF000, 0xFEA5, [](Machine& m) {
+        uint32_t t;
+        std::memcpy(&t, &m.ram[0x46C], 4);
+        if (++t >= 0x1800B0) t = 0;
+        std::memcpy(&m.ram[0x46C], &t, 4);
+        m.call_vector(0x1C);
+        (void)pop16(m);
+        m.cpu.cs = pop16(m);
+        m.cpu.set_flags16(pop16(m));
+    });
+    // INT 09h: keys already reach INT 16h through the input subsystem.
+    register_synthetic_function(0xF000, 0xE987, iret);
+    // INT 1Ch and other defaults: plain IRET.
+    register_synthetic_function(0xF000, 0xFF53, iret);
+    auto set_vec = [&](uint8_t n, uint16_t off) {
+        uint16_t seg = 0xF000;
+        std::memcpy(&ram[n * 4], &off, 2);
+        std::memcpy(&ram[n * 4 + 2], &seg, 2);
+        ram[phys_addr(seg, off)] = 0xCF;  // IRET opcode, for code that inspects it
+    };
+    set_vec(0x08, 0xFEA5);
+    set_vec(0x09, 0xE987);
+    set_vec(0x1C, 0xFF53);
+}
+
+bool Machine::call_handler(uint16_t seg, uint16_t off, bool iret_frame,
+                           const std::function<void(Cpu&)>& setup) {
+    FunctionPointer fn = resolve_function(seg, off);
+    if (!fn) {
+        static int warned = 0;
+        if (warned++ < 10)
+            std::fprintf(stderr, "[WARN] interrupt handler %04X:%04X is not lifted\n", seg, off);
+        return false;
+    }
+    Cpu saved = cpu;
+    if (iret_frame) push16(*this, cpu.flags16());
+    push16(*this, cpu.cs);
+    push16(*this, cpu.ip);
+    cpu.cs = seg;
+    cpu.ip = off;
+    if (iret_frame) cpu.ifl = 0;
+    if (setup) setup(cpu);
+    struct DepthGuard {
+        int& d;
+        explicit DepthGuard(int& x) : d(x) { ++d; }
+        ~DepthGuard() { --d; }
+    } guard(isr_depth_);
+    uint32_t t0 = SDL_GetTicks();
+    fn(*this);
+    uint32_t dt = SDL_GetTicks() - t0;
+    if (dt > 20) std::fprintf(stderr, "[WARN] handler %04X:%04X ran for %u ms\n", seg, off, dt);
+    cpu = saved;
+    return true;
+}
+
+bool Machine::call_vector(uint8_t int_no) {
+    if (pm) {
+        if (pm_vectors[int_no].sel) return call_handler32(pm_vectors[int_no].sel, pm_vectors[int_no].off, true);
+        return false;
+    }
+    uint16_t off, seg;
+    std::memcpy(&off, &ram[int_no * 4], 2);
+    std::memcpy(&seg, &ram[int_no * 4 + 2], 2);
+    if (seg == 0 && off == 0) return false;
+    if (!resolve_function(seg, off)) {
+        static bool warned[256];
+        if (!warned[int_no]) {
+            warned[int_no] = true;
+            std::fprintf(stderr, "[WARN] INT %02Xh vector %04X:%04X is not lifted\n", int_no, seg, off);
+        }
+        return false;
+    }
+    return call_handler(seg, off, true);
+}
+
+uint64_t Machine::pit_clock_now() {
+    uint64_t now = SDL_GetPerformanceCounter();
+    if (pit_base_counter_ == 0) pit_base_counter_ = now;
+    return static_cast<uint64_t>(
+        static_cast<__uint128_t>(now - pit_base_counter_) * 1193182u / SDL_GetPerformanceFrequency());
+}
+
+static uint32_t s_irq_stats[4];  // serviced, skipped (IF=0), skipped (nested), timer ticks
+void Machine::service_interrupts() {
+    static const bool trace = std::getenv("GENESIS_TRACE_IRQ") != nullptr;
+    if (trace) {
+        static uint32_t last = 0;
+        uint32_t t = SDL_GetTicks();
+        if (t - last >= 2000) {
+            last = t;
+            std::fprintf(stderr, "[IRQ] serviced %u, skipped IF=0 %u, nested %u, timer ticks %u, divisor %u\n",
+                         s_irq_stats[0], s_irq_stats[1], s_irq_stats[2], s_irq_stats[3], pit_divisor_);
+        }
+    }
+    if (isr_depth_ > 0) { s_irq_stats[2]++; return; }
+    if (!cpu.ifl) { s_irq_stats[1]++; return; }
+    s_irq_stats[0]++;
+
+    // PIT channel 0 -> INT 08h at the programmed rate. Count PIT input clocks
+    // (1193182 Hz) since a fixed base so short intervals aren't truncated away.
+    // Audio is rendered up to each tick before the tick runs, so the music
+    // driver's register writes land on the right sample.
+    uint64_t clocks = pit_clock_now();
+    int delivered = 0;
+    while (clocks - pit_clocks_done_ >= pit_divisor_) {
+        pit_clocks_done_ += pit_divisor_;
+        s_irq_stats[3]++;
+        audio->sync(pit_clocks_done_);
+        call_vector(0x08);
+        if (++delivered >= 64) {  // fell far behind (e.g. a blocking load): drop the backlog
+            pit_clocks_done_ = clocks;
+            break;
+        }
+    }
+    audio->sync(clocks);
+
+    // Sound Blaster (end of DMA block).
+    int irq = audio->pending_irq();
+    if (irq >= 0) call_vector(static_cast<uint8_t>(irq < 8 ? 0x08 + irq : 0x70 + irq - 8));
+
+    input->deliver_irqs();
 }
 
 void Machine::register_synthetic_function(uint16_t seg, uint16_t off, FunctionPointer fn) {
@@ -148,6 +284,28 @@ void Machine::call_far(uint16_t cs, uint16_t ip) {
     cpu.cs = pop16(*this);
 }
 
+uint32_t g_watch_lo = 0, g_watch_hi = 0;
+// GENESIS_WATCH=lo-hi arms the watch; GENESIS_WATCH_AFTER=ms delays arming it.
+static void update_watch() {
+    static bool armed = false;
+    if (armed) return;
+    const char* w = std::getenv("GENESIS_WATCH");
+    if (!w) { armed = true; return; }
+    const char* after = std::getenv("GENESIS_WATCH_AFTER");
+    if (after && SDL_GetTicks() < static_cast<uint32_t>(std::atoi(after))) return;
+    std::sscanf(w, "%x-%x", &g_watch_lo, &g_watch_hi);
+    armed = true;
+}
+void watch_hit(Machine& m, uint32_t lin, int size, uint32_t val) {
+    static int hits = 0;
+    if (hits++ >= 20) return;
+    std::fprintf(stderr, "[WATCH] write %05X size %d val %X cs=%04X ds=%04X es=%04X ss:sp=%04X:%04X\n",
+                 lin, size, val, m.cpu.cs, m.cpu.ds, m.cpu.es, m.cpu.ss, m.cpu.sp.w);
+    void* frames[12];
+    int n = backtrace(frames, 12);
+    backtrace_symbols_fd(frames, n, 2);
+}
+
 void Machine::invalid_code(uint16_t seg, uint16_t off) {
     std::fprintf(stderr, "[FATAL] Execution jumped to invalid code at %04X:%04X\n", seg, off);
     running = false;
@@ -160,6 +318,11 @@ void Machine::unimplemented(uint16_t seg, uint16_t off, const char* msg) {
         uint16_t ret_cs = *reinterpret_cast<const uint16_t*>(ptr(cpu.ss, cpu.sp.w + 2));
         std::fprintf(stderr, "[WARN] Unimplemented at %04X:%04X (called from %04X:%04X, sp=%04X): %s\n",
                      seg, off, ret_cs, ret_ip, cpu.sp.w, msg);
+        if (std::getenv("GENESIS_BT")) {
+            void* frames[32];
+            int n = backtrace(frames, 32);
+            backtrace_symbols_fd(frames, n, 2);
+        }
     }
 }
 
@@ -168,11 +331,20 @@ void Machine::fpu_emulated(uint8_t int_no, uint16_t seg, uint16_t off, const cha
     (void)int_no; (void)seg; (void)off; (void)msg;
 }
 
+static bool trace_port(uint16_t port) {
+    static const bool t = std::getenv("GENESIS_TRACE_PORTS") != nullptr;
+    return t && !(port >= 0x3C0 && port <= 0x3DA) && port != 0x60 && port != 0x388 && port != 0x389;
+}
+
 uint8_t Machine::in8(uint16_t port) {
+    if (trace_port(port)) {
+        static int n = 0;
+        if (n++ < 400) std::fprintf(stderr, "[PORT] in  %03X\n", port);
+    }
     if (port == 0x60) {
         return input->read_port_60();
     }
-    if (port == 0x388 || port == 0x389 || (port >= 0x220 && port <= 0x22F)) {
+    if (audio->handles_port(port)) {
         return audio->read_port(port);
     }
     if (port >= 0x3C0 && port <= 0x3DA) {
@@ -199,7 +371,35 @@ uint32_t Machine::in32(uint16_t port) {
 }
 
 void Machine::out8(uint16_t port, uint8_t val) {
-    if (port == 0x388 || port == 0x389 || (port >= 0x220 && port <= 0x22F)) {
+    if (trace_port(port)) {
+        static int n = 0;
+        if (n++ < 400) std::fprintf(stderr, "[PORT] out %03X %02X\n", port, val);
+        static const char* bt = std::getenv("GENESIS_PORT_BT");
+        if (bt && std::strtol(bt, nullptr, 16) == port) {
+            void* frames[12];
+            int k = backtrace(frames, 12);
+            backtrace_symbols_fd(frames, k, 2);
+        }
+    }
+    if (port == 0x43) {
+        // Channel 0, lobyte/hibyte access: next two writes to 0x40 set the divisor.
+        if ((val & 0xC0) == 0x00 && (val & 0x30) == 0x30) pit_expect_hi_ = false;
+        return;
+    }
+    if (port == 0x40) {
+        if (!pit_expect_hi_) {
+            pit_lo_ = val;
+            pit_expect_hi_ = true;
+        } else {
+            uint32_t d = static_cast<uint32_t>(pit_lo_) | (static_cast<uint32_t>(val) << 8);
+            pit_divisor_ = d ? d : 65536;
+            pit_expect_hi_ = false;
+            if (std::getenv("GENESIS_TRACE_INT"))
+                std::fprintf(stderr, "[PIT] divisor %u (%.1f Hz)\n", pit_divisor_, 1193182.0 / pit_divisor_);
+        }
+        return;
+    }
+    if (audio->handles_port(port)) {
         audio->write_port(port, val);
         return;
     }
@@ -220,6 +420,7 @@ void Machine::out32(uint16_t port, uint32_t val) {
 }
 
 void Machine::interrupt(uint8_t int_no, uint16_t seg, uint16_t off) {
+    if (pm && pm_interrupt(int_no)) return;
     switch (int_no) {
     case 0x10:
         video->handle_int10();
@@ -233,7 +434,7 @@ void Machine::interrupt(uint8_t int_no, uint16_t seg, uint16_t off) {
     case 0x1A: // Time-of-day BIOS services
         if (cpu.ax.b.h == 0x00) { // Get system clock ticks
             uint32_t ticks = SDL_GetTicks() * 182 / 10000;
-            *reinterpret_cast<uint32_t*>(ptr(0x0040, 0x006C)) = ticks;
+            *reinterpret_cast<uint32_t*>(&ram[0x46C]) = ticks;
             cpu.cx.w = static_cast<uint16_t>(ticks >> 16);
             cpu.dx.w = static_cast<uint16_t>(ticks & 0xFFFF);
             cpu.ax.b.l = 0; // Midnight flag
@@ -251,36 +452,24 @@ void Machine::interrupt(uint8_t int_no, uint16_t seg, uint16_t off) {
     default:
         std::fprintf(stderr, "[INT] Unhandled interrupt INT %02Xh from %04X:%04X (AX=%04X)\n",
                      int_no, seg, off, cpu.ax.w);
+        if (std::getenv("GENESIS_BT")) {
+            void* frames[16];
+            int n = backtrace(frames, 16);
+            backtrace_symbols_fd(frames, n, 2);
+        }
         break;
     }
 }
 
 void Machine::frame_sync() {
+    if (isr_depth_ > 0) return;  // never re-enter the main loop from a handler
     input->pump_events();
     if (!running) {
         throw ProcessTerminated{0};
     }
     video->present_frame();
-
-    // Trigger timer interrupt (INT 08h) for music & animation if hooked
-    uint16_t timer_off = *reinterpret_cast<const uint16_t*>(&ram[0x08 * 4]);
-    uint16_t timer_seg = *reinterpret_cast<const uint16_t*>(&ram[0x08 * 4 + 2]);
-    if (timer_seg != 0 || timer_off != 0) {
-        FunctionPointer fn = resolve_function(timer_seg, timer_off);
-        if (fn) {
-            fn(*this);
-        }
-    }
-
-    // Trigger user timer interrupt (INT 1Ch)
-    uint16_t u_timer_off = *reinterpret_cast<const uint16_t*>(&ram[0x1C * 4]);
-    uint16_t u_timer_seg = *reinterpret_cast<const uint16_t*>(&ram[0x1C * 4 + 2]);
-    if (u_timer_seg != 0 || u_timer_off != 0) {
-        FunctionPointer fn = resolve_function(u_timer_seg, u_timer_off);
-        if (fn) {
-            fn(*this);
-        }
-    }
+    update_watch();
+    service_interrupts();
 
     uint32_t now = SDL_GetTicks();
     uint32_t elapsed = now - last_tick_time_;
@@ -289,17 +478,14 @@ void Machine::frame_sync() {
         now = SDL_GetTicks();
     }
     last_tick_time_ = now;
-    uint32_t dos_ticks = now * 182 / 10000;
-    *reinterpret_cast<uint32_t*>(ptr(0x0040, 0x006C)) = dos_ticks;
 }
 
 void Machine::poll_tick() {
     tick_counter++;
     if ((tick_counter & 0x003F) == 0) {
-        uint32_t now = SDL_GetTicks();
-        uint32_t dos_ticks = now * 182 / 10000;
-        *reinterpret_cast<uint32_t*>(ptr(0x0040, 0x006C)) = dos_ticks;
-        if (now - last_tick_time_ >= 16) {
+        if (isr_depth_ > 0) return;
+        service_interrupts();
+        if (SDL_GetTicks() - last_tick_time_ >= 16) {
             frame_sync();
         }
     }
@@ -371,6 +557,8 @@ bool Machine::load_mz(const std::string& path, uint16_t load_seg, const std::str
     uint16_t psp_seg = static_cast<uint16_t>(load_seg - 0x10);
     uint32_t psp_base = static_cast<uint32_t>(psp_seg) << 4;
     std::memset(&ram[psp_base], 0, 0x100);
+
+    dos->reset_memory(psp_seg);
 
     // INT 20h exit instruction at PSP:0
     ram[psp_base + 0] = 0xCD;
@@ -483,13 +671,13 @@ int Machine::exec_module(const std::string& prog_path, const std::string& cmd_li
     std::vector<uint8_t> saved_ram(ram.get(), ram.get() + 0xA0000);
     Cpu saved_cpu = cpu;
     bool was_running = running;
-    uint16_t saved_heap_seg = dos->heap_next_seg();
+    auto saved_blocks = dos->memory_blocks();
 
     int child_exit = run_module(child_mod, cmd_line);
 
     // Restore conventional RAM, heap pointer, and parent module dispatch table
     std::memcpy(ram.get(), saved_ram.data(), saved_ram.size());
-    dos->set_heap_next_seg(saved_heap_seg);
+    dos->set_memory_blocks(std::move(saved_blocks));
     if (parent_mod) {
         register_module(parent_mod);
     }

@@ -8,6 +8,16 @@
 
 namespace gen {
 
+// Debug write watch (GENESIS_WATCH=lo-hi, linear hex). Disabled when lo==hi.
+extern uint32_t g_watch_lo, g_watch_hi;
+void watch_hit(Machine& m, uint32_t lin, int size, uint32_t val);
+inline void watch_check(Machine& m, uint16_t seg, uint32_t off, int size, uint32_t val) {
+    if (__builtin_expect(g_watch_lo != g_watch_hi, 0)) {
+        uint32_t lin = m.phys_addr(seg, off);
+        if (lin + size > g_watch_lo && lin < g_watch_hi) watch_hit(m, lin, size, val);
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Memory Read / Write
 // ---------------------------------------------------------------------------
@@ -30,15 +40,18 @@ inline uint32_t rd32(Machine& m, uint16_t seg, uint32_t off) {
 }
 
 inline void wr8(Machine& m, uint16_t seg, uint32_t off, uint8_t val) {
+    watch_check(m, seg, off, 1, val);
     *m.ptr(seg, off) = val;
 }
 
 inline void wr16(Machine& m, uint16_t seg, uint32_t off, uint16_t val) {
+    watch_check(m, seg, off, 2, val);
     uint8_t* p = m.ptr(seg, off);
     std::memcpy(p, &val, sizeof(val));
 }
 
 inline void wr32(Machine& m, uint16_t seg, uint32_t off, uint32_t val) {
+    watch_check(m, seg, off, 4, val);
     uint8_t* p = m.ptr(seg, off);
     std::memcpy(p, &val, sizeof(val));
 }
@@ -46,23 +59,28 @@ inline void wr32(Machine& m, uint16_t seg, uint32_t off, uint32_t val) {
 // ---------------------------------------------------------------------------
 // Stack Operations
 // ---------------------------------------------------------------------------
+// Protected-mode programs (m.pm) run on a 32-bit stack (ESP).
 inline void push16(Machine& m, uint16_t val) {
+    if (m.pm) { m.cpu.sp.e -= 2; wr16(m, m.cpu.ss, m.cpu.sp.e, val); return; }
     m.cpu.sp.w = static_cast<uint16_t>(m.cpu.sp.w - 2);
     wr16(m, m.cpu.ss, m.cpu.sp.w, val);
 }
 
 inline uint16_t pop16(Machine& m) {
+    if (m.pm) { uint16_t v = rd16(m, m.cpu.ss, m.cpu.sp.e); m.cpu.sp.e += 2; return v; }
     uint16_t val = rd16(m, m.cpu.ss, m.cpu.sp.w);
     m.cpu.sp.w = static_cast<uint16_t>(m.cpu.sp.w + 2);
     return val;
 }
 
 inline void push32(Machine& m, uint32_t val) {
+    if (m.pm) { m.cpu.sp.e -= 4; wr32(m, m.cpu.ss, m.cpu.sp.e, val); return; }
     m.cpu.sp.w = static_cast<uint16_t>(m.cpu.sp.w - 4);
     wr32(m, m.cpu.ss, m.cpu.sp.w, val);
 }
 
 inline uint32_t pop32(Machine& m) {
+    if (m.pm) { uint32_t v = rd32(m, m.cpu.ss, m.cpu.sp.e); m.cpu.sp.e += 4; return v; }
     uint32_t val = rd32(m, m.cpu.ss, m.cpu.sp.w);
     m.cpu.sp.w = static_cast<uint16_t>(m.cpu.sp.w + 4);
     return val;

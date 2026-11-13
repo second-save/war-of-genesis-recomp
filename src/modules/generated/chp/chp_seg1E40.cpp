@@ -199,28 +199,148 @@ void F_1E40_00B4(Machine& m) {
 
 void F_1E40_00CD(Machine& m) {
     Cpu& c = m.cpu;
-    // Timer interrupt service routine (INT 08h) for background music playback.
-    // DS is 0x4524 + kLoadSeg (standard CHP data segment)
-    uint16_t music_ds = static_cast<uint16_t>(0x4524 + kLoadSeg);
-
-    uint16_t remaining = rd16(m, music_ds, 0x9041);
-    if (remaining > 0) {
-        remaining--;
-        wr16(m, music_ds, 0x9041, remaining);
-    }
-
-    if (remaining == 0 && rd8(m, music_ds, 0x9040) == 0) {
-        wr8(m, music_ds, 0x9040, 1);
-        // Call the music sequencer tick
-        push16(m, c.cs);
-        push16(m, 0);
-        c.cs = static_cast<uint16_t>(0x0D45 + kLoadSeg);
-        F_0D45_05D7(m);
-        wr8(m, music_ds, 0x9040, 0);
-
-        uint16_t step = c.ax.w;
-        wr16(m, music_ds, 0x9041, step);
-    }
+    (void)c;
+    // 00CD: push ax
+    push16(m, c.ax.w);
+    // 00CE: push bx
+    push16(m, c.bx.w);
+    // 00CF: push cx
+    push16(m, c.cx.w);
+    // 00D0: push dx
+    push16(m, c.dx.w);
+    // 00D1: push es
+    push16(m, c.es);
+    // 00D2: push ds
+    push16(m, c.ds);
+    // 00D3: push si
+    push16(m, c.si.w);
+    // 00D4: push di
+    push16(m, c.di.w);
+    // 00D5: push bp
+    push16(m, c.bp.w);
+    // 00D6: mov bp, 0x4524
+    c.bp.w = (uint16_t)((uint16_t)(0x4524 + kLoadSeg));
+    // 00D9: mov ds, bp
+    c.ds = (uint16_t)(c.bp.w);
+    // 00DB: mov ax, word ptr [0x9045]
+    c.ax.w = (uint16_t)(rd16(m, c.ds, (uint16_t)(0x9045)));
+    // 00DE: add word ptr [0x9043], ax
+    { uint16_t t = op_add<uint16_t>(c, rd16(m, c.ds, (uint16_t)((-28605))), c.ax.w); wr16(m, c.ds, (uint16_t)((-28605)), (uint16_t)(t)); }
+    // 00E2: mov ax, word ptr [0x9047]
+    c.ax.w = (uint16_t)(rd16(m, c.ds, (uint16_t)(0x9047)));
+    // 00E5: adc ax, 0
+    { uint16_t t = op_adc<uint16_t>(c, c.ax.w, (uint16_t)0x0u); c.ax.w = (uint16_t)(t); }
+    // 00E8: jne 0xf0
+    if (!c.zf) { goto L_00F0; }
+    // 00EA: mov al, 0x20
+    c.ax.b.l = (uint8_t)((uint8_t)0x20u);
+    // 00EC: out 0x20, al
+    m.out8(0x20, c.ax.b.l);
+    // 00EE: jmp 0xf5
+    { goto L_00F5; }
+L_00F0:
+    // 00F0: pushf
+    push16(m, c.flags16());
+    // 00F1: lcall [0x903c]
+    { uint16_t o = rd16(m, c.ds, (uint16_t)((-28612))); uint16_t s = rd16(m, c.ds, (uint16_t)((-28610))); push16(m, c.cs); push16(m, 0x00F5); c.cs = s; m.call_far(s, o); }
+L_00F5:
+    // 00F5: dec word ptr [0x9041]
+    { uint16_t t = op_dec<uint16_t>(c, rd16(m, c.ds, (uint16_t)((-28607)))); wr16(m, c.ds, (uint16_t)((-28607)), (uint16_t)(t)); }
+    // 00F9: jne 0x148
+    if (!c.zf) { goto L_0148; }
+    // 00FB: cmp byte ptr [0x9040], 0
+    op_sub<uint8_t>(c, rd8(m, c.ds, (uint16_t)((-28608))), (uint8_t)0x0u);
+    // 0100: jne 0x148
+    if (!c.zf) { goto L_0148; }
+    // 0102: pushf
+    push16(m, c.flags16());
+    // 0103: push eax
+    push32(m, c.ax.e);
+    // 0105: push ebx
+    push32(m, c.bx.e);
+    // 0107: push ecx
+    push32(m, c.cx.e);
+    // 0109: push edx
+    push32(m, c.dx.e);
+    // 010B: push esi
+    push32(m, c.si.e);
+    // 010D: push edi
+    push32(m, c.di.e);
+    // 010F: push bp
+    push16(m, c.bp.w);
+    // 0110: push ds
+    push16(m, c.ds);
+    // 0111: push es
+    push16(m, c.es);
+L_0112:
+    // 0112: inc byte ptr [0x9040]
+    { uint8_t t = op_inc<uint8_t>(c, rd8(m, c.ds, (uint16_t)((-28608)))); wr8(m, c.ds, (uint16_t)((-28608)), (uint8_t)(t)); }
+    // 0116: sti
+    c.ifl = 1; m.poll_tick();
+    // 0117: lcall 0xd45, 0x5d7
+    push16(m, c.cs); push16(m, 0x011C); c.cs = (uint16_t)(0xD45 + kLoadSeg); F_0D45_05D7(m);
+    // 011C: cli
+    c.ifl = 0;
+    // 011D: dec byte ptr [0x9040]
+    { uint8_t t = op_dec<uint8_t>(c, rd8(m, c.ds, (uint16_t)((-28608)))); wr8(m, c.ds, (uint16_t)((-28608)), (uint8_t)(t)); }
+    // 0121: mov bx, word ptr [0x9041]
+    c.bx.w = (uint16_t)(rd16(m, c.ds, (uint16_t)((-28607))));
+    // 0125: neg bx
+    { uint16_t t = op_neg<uint16_t>(c, c.bx.w); c.bx.w = (uint16_t)(t); }
+    // 0127: cmp bx, ax
+    op_sub<uint16_t>(c, c.bx.w, c.ax.w);
+    // 0129: jb 0x133
+    if (c.cf) { goto L_0133; }
+    // 012B: mov word ptr [0x9041], 0
+    wr16(m, c.ds, (uint16_t)((-28607)), (uint16_t)((uint16_t)0x0u));
+    // 0131: jmp 0x112
+    { m.poll_tick(); goto L_0112; }
+L_0133:
+    // 0133: add word ptr [0x9041], ax
+    { uint16_t t = op_add<uint16_t>(c, rd16(m, c.ds, (uint16_t)((-28607))), c.ax.w); wr16(m, c.ds, (uint16_t)((-28607)), (uint16_t)(t)); }
+    // 0137: sti
+    c.ifl = 1; m.poll_tick();
+    // 0138: pop es
+    { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
+    // 0139: pop ds
+    { uint16_t t = pop16(m); c.ds = (uint16_t)(t); }
+    // 013A: pop bp
+    { uint16_t t = pop16(m); c.bp.w = (uint16_t)(t); }
+    // 013B: pop edi
+    { uint32_t t = pop32(m); c.di.e = (uint32_t)(t); }
+    // 013D: pop esi
+    { uint32_t t = pop32(m); c.si.e = (uint32_t)(t); }
+    // 013F: pop edx
+    { uint32_t t = pop32(m); c.dx.e = (uint32_t)(t); }
+    // 0141: pop ecx
+    { uint32_t t = pop32(m); c.cx.e = (uint32_t)(t); }
+    // 0143: pop ebx
+    { uint32_t t = pop32(m); c.bx.e = (uint32_t)(t); }
+    // 0145: pop eax
+    { uint32_t t = pop32(m); c.ax.e = (uint32_t)(t); }
+    // 0147: popf
+    c.set_flags16((uint16_t)pop16(m));
+L_0148:
+    // 0148: pop bp
+    { uint16_t t = pop16(m); c.bp.w = (uint16_t)(t); }
+    // 0149: pop di
+    { uint16_t t = pop16(m); c.di.w = (uint16_t)(t); }
+    // 014A: pop si
+    { uint16_t t = pop16(m); c.si.w = (uint16_t)(t); }
+    // 014B: pop ds
+    { uint16_t t = pop16(m); c.ds = (uint16_t)(t); }
+    // 014C: pop es
+    { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
+    // 014D: pop dx
+    { uint16_t t = pop16(m); c.dx.w = (uint16_t)(t); }
+    // 014E: pop cx
+    { uint16_t t = pop16(m); c.cx.w = (uint16_t)(t); }
+    // 014F: pop bx
+    { uint16_t t = pop16(m); c.bx.w = (uint16_t)(t); }
+    // 0150: pop ax
+    { uint16_t t = pop16(m); c.ax.w = (uint16_t)(t); }
+    // 0151: iret
+    (void)pop16(m); c.cs = pop16(m); c.set_flags16(pop16(m)); return;
 }
 
 }  // namespace

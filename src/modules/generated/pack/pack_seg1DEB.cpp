@@ -2,6 +2,34 @@
 #include "pack_decl.h"
 namespace gen::mod_pack {
 
+void F_1DEB_0002(Machine& m) {
+    Cpu& c = m.cpu;
+    (void)c;
+    // 0002: push bp
+    push16(m, c.bp.w);
+    // 0003: mov bp, sp
+    c.bp.w = (uint16_t)(c.sp.w);
+    // 0005: cmp word ptr [0x472e], 2
+    op_sub<uint16_t>(c, rd16(m, c.ds, (uint16_t)(0x472E)), (uint16_t)0x2u);
+    // 000A: je 0x1f
+    if (c.zf) { goto L_001F; }
+    // 000C: cmp word ptr [0x472e], 3
+    op_sub<uint16_t>(c, rd16(m, c.ds, (uint16_t)(0x472E)), (uint16_t)0x3u);
+    // 0011: je 0x1f
+    if (c.zf) { goto L_001F; }
+    // 0013: cmp word ptr [0x4662], 0
+    op_sub<uint16_t>(c, rd16(m, c.ds, (uint16_t)(0x4662)), (uint16_t)0x0u);
+    // 0018: jne 0x1f
+    if (!c.zf) { goto L_001F; }
+    // 001A: mov byte ptr [0x8532], 0
+    wr8(m, c.ds, (uint16_t)((-31438)), (uint8_t)((uint8_t)0x0u));
+L_001F:
+    // 001F: pop bp
+    { uint16_t t = pop16(m); c.bp.w = (uint16_t)(t); }
+    // 0020: retf
+    (void)pop16(m); c.cs = pop16(m); return;
+}
+
 void F_1DEB_051A(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;

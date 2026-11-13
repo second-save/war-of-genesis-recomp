@@ -1,5 +1,21 @@
 {
   "functions": [
-    "0000:4561"
-  ]
+    "0000:4561",
+    "369B:00C2",
+    "3690:0005",
+    "0559:0009",
+    "35FA:06D5",
+    "0000:1C6C"
+  ],
+  "comments": {
+    "369B:00C2": "INT 08h music ISR",
+    "3690:0005": "INT 09h keyboard ISR",
+    "0559:0009": "INT 1Ch game tick ISR",
+    "35FA:06D5": "INT 33h AX=0Ch mouse event handler",
+    "3084:00FE": "end of row-copy loop to VRAM: present the frame",
+    "0000:1C6C": "C runtime exit hook stored as a far pointer (closes open streams)"
+  },
+  "inject_after": {
+    "3084:00FE": "m.frame_sync();"
+  }
 }

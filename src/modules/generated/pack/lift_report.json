@@ -1,10 +1,8 @@
 {
   "exe": "PACK.EXE",
-  "functions": 453,
-  "speculative": 7,
-  "instructions": 52414,
+  "functions": 459,
+  "speculative": 8,
+  "instructions": 46839,
   "unimplemented": {},
-  "warnings": [
-    "unmodelled relocation in 24CF:0035 'mov eax, 0x450a' (byte 2)"
-  ]
+  "warnings": []
 }

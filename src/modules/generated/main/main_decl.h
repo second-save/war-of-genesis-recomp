@@ -36,6 +36,7 @@ void F_0000_0AC5(Machine& m);
 void F_0000_0B65(Machine& m);
 void F_0000_0C1F(Machine& m);
 void F_0000_0C39(Machine& m);
+void F_0000_0C51(Machine& m);
 void F_0000_0C6B(Machine& m);
 void F_0000_1041(Machine& m);
 void F_0000_10A4(Machine& m);

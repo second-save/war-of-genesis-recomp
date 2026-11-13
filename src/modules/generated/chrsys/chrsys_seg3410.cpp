@@ -42,7 +42,7 @@ void F_3410_0024(Machine& m) {
     wr8(m, c.ds, (uint16_t)(0x796C), (uint8_t)((uint8_t)0x10u));
     // 0029: nop
     // 002A: mov eax, 0x5026
-    c.ax.e = (uint32_t)((uint32_t)0x5026u);
+    c.ax.e = (uint32_t)((uint32_t)(0x5026u + kLoadSeg));
     // 0030: shl eax, 4
     { uint32_t t = op_shl<uint32_t>(c, c.ax.e, 4); c.ax.e = (uint32_t)(t); }
     // 0034: mov bx, 0x325e

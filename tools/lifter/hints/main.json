@@ -3,6 +3,10 @@
     "0000:0B65",
     "0000:16BB",
     "0000:1717",
-    "0000:2560"
-  ]
+    "0000:2560",
+    "0000:0C51"
+  ],
+  "comments": {
+    "0000:0C51": "C runtime exit hook stored as a far pointer (closes open streams)"
+  }
 }

@@ -41,7 +41,8 @@ endfunction()
 # -----------------------------------------------------------------------------
 add_library(genesis_runtime STATIC
     src/runtime/machine.cpp
-    src/runtime/boot_sequence.cpp
+    src/runtime/pm32.cpp
+    src/runtime/settings.cpp
     src/subsystems/video.cpp
     src/subsystems/audio.cpp
     src/subsystems/input.cpp
@@ -74,6 +75,9 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/modules/generated/pack/CMakeLists.txt")
     add_subdirectory(src/modules/generated/pack)
 endif()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/modules/generated/ttl/CMakeLists.txt")
+    add_subdirectory(src/modules/generated/ttl)
+endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/modules/generated/chrsys/CMakeLists.txt")
     add_subdirectory(src/modules/generated/chrsys)
 endif()
@@ -91,6 +95,7 @@ target_link_libraries(genesis PRIVATE
     $<$<TARGET_EXISTS:lifted_chp>:lifted_chp>
     $<$<TARGET_EXISTS:lifted_pack>:lifted_pack>
     $<$<TARGET_EXISTS:lifted_chrsys>:lifted_chrsys>
+    $<$<TARGET_EXISTS:lifted_ttl>:lifted_ttl>
 )
 
 if(APPLE)

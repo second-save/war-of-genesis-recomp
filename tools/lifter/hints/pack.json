@@ -1,5 +1,23 @@
 {
   "functions": [
-    "0000:3745"
-  ]
+    "0000:3745",
+    "25B6:00D7",
+    "0815:0006",
+    "1F7F:0006",
+    "251E:04A1",
+    "251E:06FA",
+    "0000:0DE8"
+  ],
+  "comments": {
+    "25B6:00D7": "INT 08h music ISR",
+    "0815:0006": "INT 09h keyboard ISR",
+    "1F7F:0006": "INT 1Ch game tick ISR",
+    "251E:04A1": "INT 33h AX=0Ch mouse event handler",
+    "251E:06FA": "INT 33h AX=0Ch mouse event handler (with cursor drawing)",
+    "1F9B:008C": "rep movsd to VRAM: present the frame",
+    "0000:0DE8": "C runtime exit hook stored as a far pointer (closes open streams)"
+  },
+  "inject_after": {
+    "1F9B:008C": "m.frame_sync();"
+  }
 }

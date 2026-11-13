@@ -2433,7 +2433,6 @@ void F_1850_2CD4(Machine& m) {
     push16(m, c.di.w);
     // 2CFE: push ds
     push16(m, c.ds);
-    if (rd16(m, c.ss, (uint16_t)(c.bp.w + (-6))) == 0 && rd16(m, c.ss, (uint16_t)(c.bp.w + (-8))) == 0) { goto L_2E01; }
     // 2CFF: mov ds, word ptr [bp - 6]
     c.ds = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + (-6))));
     // 2D02: mov si, word ptr [bp - 8]

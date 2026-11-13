@@ -48,6 +48,10 @@ public:
     uint8_t vesa_bank() const { return vesa_bank_; }
 
     SDL_Window* window() const { return window_; }
+    void update_title();
+    void apply_fullscreen();
+    int screen_width() const { return screen_width_; }
+    int screen_height() const { return screen_height_; }
 
     // Direct framebuffer / palette access for boot sequences and native overlays
     void set_palette_entry(uint8_t index, uint8_t r, uint8_t g, uint8_t b);
@@ -61,6 +65,7 @@ private:
     SDL_Texture* texture_ = nullptr;
 
     VideoMode mode_ = VideoMode::Mode13h_320x200;
+    std::string title_;
     int screen_width_ = 320;
     int screen_height_ = 200;
 

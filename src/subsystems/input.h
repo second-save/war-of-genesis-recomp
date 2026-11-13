@@ -3,6 +3,8 @@
 
 #include <cstdint>
 #include <queue>
+#include <array>
+#include <SDL_scancode.h>
 
 namespace gen {
 
@@ -46,6 +48,8 @@ public:
         while (!mouse_queue_.empty()) mouse_queue_.pop();
     }
 
+    bool key_available() const { return !key_queue_.empty(); }
+
     bool is_key_down(uint8_t scancode) const {
         return key_down_[scancode] != 0;
     }
@@ -55,8 +59,19 @@ public:
     void on_mouse_move(int window_x, int window_y, int win_w, int win_h);
     void on_mouse_button(uint8_t sdl_button, bool down);
     void move_mouse_relative(int dx, int dy);
+    void toggle_keyboard_pointer();
+    void toggle_fullscreen();
+
+    // Deliver queued keyboard (INT 09h) and mouse (INT 33h AX=0Ch) events to
+    // the program's handlers. Called by Machine when interrupts may run.
+    void deliver_irqs();
+    void reset_mouse_handler() { mouse_handler_seg_ = 0; mouse_handler_off_ = 0; mouse_handler_mask_ = 0; }
 
 private:
+    // Keyboard-pointer keys (when enabled): returns true if the key was consumed.
+    bool handle_pointer_key(SDL_Scancode sc, bool down, bool repeat);
+    void queue_mouse_irq(uint16_t mask);
+    std::array<bool, SDL_NUM_SCANCODES> held_{};  // keyboard-pointer direction keys held
     Machine& machine_;
 
     // Keyboard state
@@ -74,6 +89,14 @@ private:
     uint16_t mouse_max_y_ = 199;
     uint16_t mouse_buttons_ = 0; // bit 0: left, bit 1: right, bit 2: middle
     std::queue<MouseEvent> mouse_queue_;
+
+    // Pending hardware events and the INT 33h AX=0Ch user handler.
+    struct MouseIrq { uint16_t mask, buttons, x, y; };
+    std::queue<uint8_t> irq_scancodes_;
+    std::queue<MouseIrq> mouse_irqs_;
+    uint16_t mouse_handler_seg_ = 0;
+    uint32_t mouse_handler_off_ = 0;
+    uint16_t mouse_handler_mask_ = 0;
 };
 
 }  // namespace gen

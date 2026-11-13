@@ -227,23 +227,36 @@ class Lifter:
                     and p.operands[0].type == X86_OP_REG and p.reg_name(p.operands[0].reg) == base:
                 count = (p.operands[1].imm & 0xFFFF) + 1
                 break
+            # The index register was loaded with a constant: this is not an index-bounded
+            # table (e.g. a search table, pattern B), so an earlier cmp doesn't apply.
+            if base_mnemonic(p) == "mov" and len(p.operands) == 2 and p.operands[0].type == X86_OP_REG \
+                    and p.reg_name(p.operands[0].reg) == base and p.operands[1].type == X86_OP_IMM:
+                break
         if count is None or count > 512:
-            # Pattern B (search table): mov cx, N ... jmp cs:[bx + 2N]; values precede targets.
-            for p_off, p in fn.body.items():
+            # Pattern B (search table): mov cx, N / mov bx, VALUES / scan loop / jmp cs:[bx + 2N].
+            # The N case values at VALUES are followed by the N targets. Walk back from the jmp
+            # to the loads that actually feed it.
+            start = n = None
+            cur = insn.address
+            for _ in range(24):
+                cur = preds.get(cur)
+                if cur is None:
+                    break
+                p = self.decode(seg, cur)
                 if p is None or isinstance(p, _FpuEmu):
-                    continue
+                    break
                 if base_mnemonic(p) == "mov" and len(p.operands) == 2 and p.operands[0].type == X86_OP_REG \
-                        and p.reg_name(p.operands[0].reg) == "cx" and p.operands[1].type == X86_OP_IMM \
-                        and (p.operands[1].imm * 2) == table:
-                    n = p.operands[1].imm
-                    for q in fn.body.values():
-                        if q is None or isinstance(q, _FpuEmu):
-                            continue
-                        if base_mnemonic(q) == "mov" and len(q.operands) == 2 and q.operands[0].type == X86_OP_REG \
-                                and q.reg_name(q.operands[0].reg) == base and q.operands[1].type == X86_OP_IMM:
-                            start = q.operands[1].imm & 0xFFFF
-                            io = seg * 16 + start + table
-                            return [self.exe.word(io + 2 * k) for k in range(n)]
+                        and p.operands[1].type == X86_OP_IMM:
+                    r = p.reg_name(p.operands[0].reg)
+                    if r == base and start is None:
+                        start = p.operands[1].imm & 0xFFFF
+                    elif r == "cx" and n is None:
+                        n = p.operands[1].imm & 0xFFFF
+                if start is not None and n is not None:
+                    break
+            if start is not None and n is not None and n * 2 == table and 0 < n <= 256:
+                io = seg * 16 + start + table
+                return [self.exe.word(io + 2 * k) for k in range(n)]
             self.warnings.append(f"{fname(fn.seg, fn.off)}: unresolved indirect jmp at {seg:04X}:{insn.address:04X} ({insn.op_str})")
             return None
         io = seg * 16 + table
@@ -477,6 +490,10 @@ class Lifter:
                 self.unimpl[str(ex)] += 1
                 stmts, falls = [f'm.unimplemented(0x{seg:04X}, 0x{off:04X}, "{insn_text(insn)}"); return;'], False
             stmts = [f"// {off:04X}: {insn_text(insn)}"] + stmts
+            # Hint-supplied runtime hooks (e.g. present a frame after a VRAM blit).
+            inject = self.hints.get("inject_after", {}).get(f"{seg:04X}:{off:04X}")
+            if inject:
+                stmts.append(inject)
             if falls:
                 nxt = (off + insn.size) & 0xFFFF
                 following = offs[idx + 1] if idx + 1 < len(offs) else None
@@ -518,6 +535,8 @@ class Lifter:
                 continue
             if pos == insn.size - 2 and insn.imm_offset == pos:
                 continue
+            if pos == insn.size - 4 and insn.imm_offset == pos and insn.imm_size == 4:
+                continue
             self.warnings.append(f"unmodelled relocation in {seg:04X}:{insn.address:04X} '{insn_text(insn)}' (byte {pos})")
 
     # ------------------------------------------------------------- operands
@@ -548,6 +567,9 @@ class Lifter:
         v = op.imm & MASK[size]
         if size == 2 and self.is_reloc_word(seg, insn, insn.size - 2) and insn.imm_offset == insn.size - 2:
             return f"(uint16_t)(0x{v:X} + kLoadSeg)"
+        if size == 4 and self.is_reloc_word(seg, insn, insn.imm_offset) and insn.imm_offset == insn.size - 4:
+            # Segment value in the low word of a 32-bit immediate.
+            return f"(uint32_t)(0x{v:X}u + kLoadSeg)"
         return f"({CTYPE[size]})0x{v:X}u"
 
     def rd(self, seg, insn, op, size=None) -> str:
@@ -774,6 +796,14 @@ class Lifter:
         suffix = m[-1]
         size = {"b": 1, "w": 2, "d": 4}[suffix]
         rep = {0xF3: 1, 0xF2: 2}.get(insn.prefix[0], 0)
+        if not rep:
+            # Capstone drops F2 in front of movsd (it reads it as the SSE2 MOVSD prefix).
+            for b in insn.bytes:
+                if b in (0xF2, 0xF3):
+                    rep = 1 if b == 0xF3 else 2
+                    break
+                if b not in (0x26, 0x2E, 0x36, 0x3E, 0x64, 0x65, 0x66, 0x67, 0xF0):
+                    break
         a32 = "true" if insn.prefix[3] == 0x67 else "false"
         sseg = SEG_PREFIX.get(insn.prefix[1], "c.ds")
         if kind in ("stos", "scas", "ins"):
@@ -811,7 +841,8 @@ def main():
     ap.add_argument("--name", required=True, help="module identifier, e.g. main / chp / pack / chrsys")
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--load-seg", type=lambda s: int(s, 0), default=DEFAULT_LOAD_SEG)
-    ap.add_argument("--hints", type=Path, help="JSON file: {\"functions\": [\"SEG:OFF\", ...]}")
+    ap.add_argument("--hints", type=Path, help="JSON file: {\"functions\": [\"SEG:OFF\", ...], "
+                    "\"inject_after\": {\"SEG:OFF\": \"C++ statement\"}}")
     ap.add_argument("--stats-only", action="store_true")
     args = ap.parse_args()
 

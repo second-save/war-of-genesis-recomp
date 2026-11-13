@@ -2,6 +2,126 @@
 #include "pack_decl.h"
 namespace gen::mod_pack {
 
+void F_1F7F_0006(Machine& m) {
+    Cpu& c = m.cpu;
+    (void)c;
+    // 0006: push ax
+    push16(m, c.ax.w);
+    // 0007: push bx
+    push16(m, c.bx.w);
+    // 0008: push cx
+    push16(m, c.cx.w);
+    // 0009: push dx
+    push16(m, c.dx.w);
+    // 000A: push es
+    push16(m, c.es);
+    // 000B: push ds
+    push16(m, c.ds);
+    // 000C: push si
+    push16(m, c.si.w);
+    // 000D: push di
+    push16(m, c.di.w);
+    // 000E: push bp
+    push16(m, c.bp.w);
+    // 000F: mov bp, 0x450a
+    c.bp.w = (uint16_t)((uint16_t)(0x450A + kLoadSeg));
+    // 0012: mov ds, bp
+    c.ds = (uint16_t)(c.bp.w);
+    // 0014: mov bp, sp
+    c.bp.w = (uint16_t)(c.sp.w);
+    // 0016: pushf
+    push16(m, c.flags16());
+    // 0017: lcall [0x875e]
+    { uint16_t o = rd16(m, c.ds, (uint16_t)((-30882))); uint16_t s = rd16(m, c.ds, (uint16_t)((-30880))); push16(m, c.cs); push16(m, 0x001B); c.cs = s; m.call_far(s, o); }
+    // 001B: cli
+    c.ifl = 0;
+    // 001C: pushf
+    push16(m, c.flags16());
+    // 001D: push gs
+    push16(m, c.gs);
+    // 001F: push fs
+    push16(m, c.fs);
+    // 0021: push ds
+    push16(m, c.ds);
+    // 0022: push es
+    push16(m, c.es);
+    // 0023: push eax
+    push32(m, c.ax.e);
+    // 0025: push ebx
+    push32(m, c.bx.e);
+    // 0027: push ecx
+    push32(m, c.cx.e);
+    // 0029: push edx
+    push32(m, c.dx.e);
+    // 002B: push esi
+    push32(m, c.si.e);
+    // 002D: push edi
+    push32(m, c.di.e);
+    // 002F: mov ax, 0x450a
+    c.ax.w = (uint16_t)((uint16_t)(0x450A + kLoadSeg));
+    // 0032: mov ds, ax
+    c.ds = (uint16_t)(c.ax.w);
+    // 0034: inc word ptr [0x8764]
+    { uint16_t t = op_inc<uint16_t>(c, rd16(m, c.ds, (uint16_t)((-30876)))); wr16(m, c.ds, (uint16_t)((-30876)), (uint16_t)(t)); }
+    // 0038: mov ax, word ptr [0x8764]
+    c.ax.w = (uint16_t)(rd16(m, c.ds, (uint16_t)(0x8764)));
+    // 003B: xor dx, dx
+    { uint16_t t = op_xor<uint16_t>(c, c.dx.w, c.dx.w); c.dx.w = (uint16_t)(t); }
+    // 003D: div word ptr [0x38bc]
+    op_div16(m, rd16(m, c.ds, (uint16_t)(0x38BC)));
+    // 0041: or dx, dx
+    { uint16_t t = op_or<uint16_t>(c, c.dx.w, c.dx.w); c.dx.w = (uint16_t)(t); }
+    // 0043: jne 0x4a
+    if (!c.zf) { goto L_004A; }
+    // 0045: mov byte ptr [0x8762], 1
+    wr8(m, c.ds, (uint16_t)((-30878)), (uint8_t)((uint8_t)0x1u));
+L_004A:
+    // 004A: pop edi
+    { uint32_t t = pop32(m); c.di.e = (uint32_t)(t); }
+    // 004C: pop esi
+    { uint32_t t = pop32(m); c.si.e = (uint32_t)(t); }
+    // 004E: pop edx
+    { uint32_t t = pop32(m); c.dx.e = (uint32_t)(t); }
+    // 0050: pop ecx
+    { uint32_t t = pop32(m); c.cx.e = (uint32_t)(t); }
+    // 0052: pop ebx
+    { uint32_t t = pop32(m); c.bx.e = (uint32_t)(t); }
+    // 0054: pop eax
+    { uint32_t t = pop32(m); c.ax.e = (uint32_t)(t); }
+    // 0056: pop es
+    { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
+    // 0057: pop ds
+    { uint16_t t = pop16(m); c.ds = (uint16_t)(t); }
+    // 0058: pop fs
+    { uint16_t t = pop16(m); c.fs = (uint16_t)(t); }
+    // 005A: pop gs
+    { uint16_t t = pop16(m); c.gs = (uint16_t)(t); }
+    // 005C: popf
+    c.set_flags16((uint16_t)pop16(m));
+    // 005D: sti
+    c.ifl = 1; m.poll_tick();
+    // 005E: pop bp
+    { uint16_t t = pop16(m); c.bp.w = (uint16_t)(t); }
+    // 005F: pop di
+    { uint16_t t = pop16(m); c.di.w = (uint16_t)(t); }
+    // 0060: pop si
+    { uint16_t t = pop16(m); c.si.w = (uint16_t)(t); }
+    // 0061: pop ds
+    { uint16_t t = pop16(m); c.ds = (uint16_t)(t); }
+    // 0062: pop es
+    { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
+    // 0063: pop dx
+    { uint16_t t = pop16(m); c.dx.w = (uint16_t)(t); }
+    // 0064: pop cx
+    { uint16_t t = pop16(m); c.cx.w = (uint16_t)(t); }
+    // 0065: pop bx
+    { uint16_t t = pop16(m); c.bx.w = (uint16_t)(t); }
+    // 0066: pop ax
+    { uint16_t t = pop16(m); c.ax.w = (uint16_t)(t); }
+    // 0067: iret
+    (void)pop16(m); c.cs = pop16(m); c.set_flags16(pop16(m)); return;
+}
+
 void F_1F7F_00FC(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;

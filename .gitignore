@@ -2,3 +2,8 @@ build/
 CMakeFiles/
 .DS_Store
 
+__pycache__/
+*.pyc
+# Game data is not part of this repository: supply your own copy.
+The-War-of-Genesis_DOS_KO/
+*.jpg

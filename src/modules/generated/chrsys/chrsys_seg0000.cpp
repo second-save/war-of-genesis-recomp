@@ -4567,6 +4567,40 @@ L_175D:
     (void)pop16(m); return;
 }
 
+void F_0000_1C6C(Machine& m) {
+    Cpu& c = m.cpu;
+    (void)c;
+    // 1C6C: push si
+    push16(m, c.si.w);
+    // 1C6D: mov si, 2
+    c.si.w = (uint16_t)((uint16_t)0x2u);
+    // 1C70: cmp si, word ptr [0x3f74]
+    op_sub<uint16_t>(c, c.si.w, rd16(m, c.ds, (uint16_t)(0x3F74)));
+    // 1C74: jae 0x1c84
+    if (!c.cf) { goto L_1C84; }
+L_1C76:
+    // 1C76: push si
+    push16(m, c.si.w);
+    // 1C77: nop
+    // 1C78: push cs
+    push16(m, c.cs);
+    // 1C79: call 0x2e8d
+    push16(m, 0x1C7C); F_0000_2E8D(m);
+    // 1C7C: pop cx
+    { uint16_t t = pop16(m); c.cx.w = (uint16_t)(t); }
+    // 1C7D: inc si
+    { uint16_t t = op_inc<uint16_t>(c, c.si.w); c.si.w = (uint16_t)(t); }
+    // 1C7E: cmp si, word ptr [0x3f74]
+    op_sub<uint16_t>(c, c.si.w, rd16(m, c.ds, (uint16_t)(0x3F74)));
+    // 1C82: jb 0x1c76
+    if (c.cf) { m.poll_tick(); goto L_1C76; }
+L_1C84:
+    // 1C84: pop si
+    { uint16_t t = pop16(m); c.si.w = (uint16_t)(t); }
+    // 1C85: retf
+    (void)pop16(m); c.cs = pop16(m); return;
+}
+
 void F_0000_1C86(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;

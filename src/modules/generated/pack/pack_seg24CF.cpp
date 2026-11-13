@@ -42,7 +42,7 @@ void F_24CF_002F(Machine& m) {
     wr8(m, c.ds, (uint16_t)((-26738)), (uint8_t)((uint8_t)0x10u));
     // 0034: nop
     // 0035: mov eax, 0x450a
-    c.ax.e = (uint32_t)((uint32_t)0x450Au);
+    c.ax.e = (uint32_t)((uint32_t)(0x450Au + kLoadSeg));
     // 003B: shl eax, 4
     { uint32_t t = op_shl<uint32_t>(c, c.ax.e, 4); c.ax.e = (uint32_t)(t); }
     // 003F: mov bx, 0x3976

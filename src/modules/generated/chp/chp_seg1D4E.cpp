@@ -9,12 +9,6 @@ void F_1D4E_0003(Machine& m) {
     push16(m, c.bp.w);
     // 0004: mov bp, sp
     c.bp.w = (uint16_t)(c.sp.w);
-    {
-        uint16_t str_off = rd16(m, c.ss, c.bp.w + 6);
-        uint16_t str_seg = rd16(m, c.ss, c.bp.w + 8);
-        const char* str = reinterpret_cast<const char*>(m.ptr(str_seg, str_off));
-        std::fprintf(stderr, "[CHP FATAL] Error #102: %s\n", str);
-    }
     // 0006: mov ax, 3
     c.ax.w = (uint16_t)((uint16_t)0x3u);
     // 0009: int 0x10
@@ -48,7 +42,7 @@ void F_1D4E_0027(Machine& m) {
     wr8(m, c.ds, (uint16_t)((-29022)), (uint8_t)((uint8_t)0x10u));
     // 002C: nop
     // 002D: mov eax, 0x4524
-    c.ax.e = (uint32_t)((uint32_t)0x4524u);
+    c.ax.e = (uint32_t)((uint32_t)(0x4524u + kLoadSeg));
     // 0033: shl eax, 4
     { uint32_t t = op_shl<uint32_t>(c, c.ax.e, 4); c.ax.e = (uint32_t)(t); }
     // 0037: mov bx, 0x32a4

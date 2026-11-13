@@ -1301,6 +1301,55 @@ L_04F2:
     (void)pop16(m); c.cs = pop16(m); return;
 }
 
+void F_0000_050E(Machine& m) {
+    Cpu& c = m.cpu;
+    (void)c;
+    // 050E: pop bx
+    { uint16_t t = pop16(m); c.bx.w = (uint16_t)(t); }
+    // 050F: pop es
+    { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
+    // 0510: sub sp, cx
+    { uint16_t t = op_sub<uint16_t>(c, c.sp.w, c.cx.w); c.sp.w = (uint16_t)(t); }
+    // 0512: push es
+    push16(m, c.es);
+    // 0513: push bx
+    push16(m, c.bx.w);
+    // 0514: push di
+    push16(m, c.di.w);
+    // 0515: push ds
+    push16(m, c.ds);
+    // 0516: mov di, sp
+    c.di.w = (uint16_t)(c.sp.w);
+    // 0518: add di, 8
+    { uint16_t t = op_add<uint16_t>(c, c.di.w, (uint16_t)0x8u); c.di.w = (uint16_t)(t); }
+    // 051B: mov bx, ss
+    c.bx.w = (uint16_t)(c.ss);
+    // 051D: mov es, bx
+    c.es = (uint16_t)(c.bx.w);
+    // 051F: mov ds, dx
+    c.ds = (uint16_t)(c.dx.w);
+    // 0521: xchg si, ax
+    { uint16_t a = c.si.w; uint16_t b = c.ax.w; c.si.w = (uint16_t)(b); c.ax.w = (uint16_t)(a); }
+    // 0522: cld
+    c.df = 0;
+    // 0523: shr cx, 1
+    { uint16_t t = op_shr<uint16_t>(c, c.cx.w, 1); c.cx.w = (uint16_t)(t); }
+    // 0525: rep movsw word ptr es:[di], word ptr [si]
+    str_movs<uint16_t>(m, c.ds, 1, false);
+    // 0527: adc cx, cx
+    { uint16_t t = op_adc<uint16_t>(c, c.cx.w, c.cx.w); c.cx.w = (uint16_t)(t); }
+    // 0529: rep movsb byte ptr es:[di], byte ptr [si]
+    str_movs<uint8_t>(m, c.ds, 1, false);
+    // 052B: xchg si, ax
+    { uint16_t a = c.si.w; uint16_t b = c.ax.w; c.si.w = (uint16_t)(b); c.ax.w = (uint16_t)(a); }
+    // 052C: pop ds
+    { uint16_t t = pop16(m); c.ds = (uint16_t)(t); }
+    // 052D: pop di
+    { uint16_t t = pop16(m); c.di.w = (uint16_t)(t); }
+    // 052E: retf
+    (void)pop16(m); c.cs = pop16(m); return;
+}
+
 void F_0000_052F(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;
@@ -3063,6 +3112,40 @@ L_0839:
     { uint16_t t = pop16(m); c.bx.w = (uint16_t)(t); }
     // 0849: ret
     (void)pop16(m); return;
+}
+
+void F_0000_0D48(Machine& m) {
+    Cpu& c = m.cpu;
+    (void)c;
+    // 0D48: push si
+    push16(m, c.si.w);
+    // 0D49: mov si, 2
+    c.si.w = (uint16_t)((uint16_t)0x2u);
+    // 0D4C: cmp si, word ptr [0x39a8]
+    op_sub<uint16_t>(c, c.si.w, rd16(m, c.ds, (uint16_t)(0x39A8)));
+    // 0D50: jae 0xd60
+    if (!c.cf) { goto L_0D60; }
+L_0D52:
+    // 0D52: push si
+    push16(m, c.si.w);
+    // 0D53: nop
+    // 0D54: push cs
+    push16(m, c.cs);
+    // 0D55: call 0x1f5a
+    push16(m, 0x0D58); F_0000_1F5A(m);
+    // 0D58: pop cx
+    { uint16_t t = pop16(m); c.cx.w = (uint16_t)(t); }
+    // 0D59: inc si
+    { uint16_t t = op_inc<uint16_t>(c, c.si.w); c.si.w = (uint16_t)(t); }
+    // 0D5A: cmp si, word ptr [0x39a8]
+    op_sub<uint16_t>(c, c.si.w, rd16(m, c.ds, (uint16_t)(0x39A8)));
+    // 0D5E: jb 0xd52
+    if (c.cf) { m.poll_tick(); goto L_0D52; }
+L_0D60:
+    // 0D60: pop si
+    { uint16_t t = pop16(m); c.si.w = (uint16_t)(t); }
+    // 0D61: retf
+    (void)pop16(m); c.cs = pop16(m); return;
 }
 
 void F_0000_0D62(Machine& m) {
@@ -8386,58 +8469,64 @@ L_2C7C:
 
 void F_0000_2C80(Machine& m) {
     Cpu& c = m.cpu;
-    // 2c80: vsprintf character output callback
-    // Stack layout:
-    // [bp + 0]: saved bp
-    // [bp + 2]: return ip (near call)
-    // [bp + 4]: dest far pointer offset
-    // [bp + 6]: dest far pointer segment
-    // [bp + 8]: count (si)
-    // [bp + 0xa]: src far pointer offset
-    // [bp + 0xc]: src far pointer segment
+    (void)c;
+    // 2C80: push bp
     push16(m, c.bp.w);
-    c.bp.w = c.sp.w;
+    // 2C81: mov bp, sp
+    c.bp.w = (uint16_t)(c.sp.w);
+    // 2C83: push si
     push16(m, c.si.w);
-    c.si.w = rd16(m, c.ss, static_cast<uint16_t>(c.bp.w + 8));
-
-    // Call memcpy (F_0000_23D2):
-    // push count
+    // 2C84: mov si, word ptr [bp + 8]
+    c.si.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0x8)));
+    // 2C87: push si
     push16(m, c.si.w);
-    // push src segment
-    push16(m, rd16(m, c.ss, static_cast<uint16_t>(c.bp.w + 0xC)));
-    // push src offset
-    push16(m, rd16(m, c.ss, static_cast<uint16_t>(c.bp.w + 0xA)));
-    // les bx, [bp + 4]
-    uint16_t dst_off = rd16(m, c.ss, static_cast<uint16_t>(c.bp.w + 4));
-    uint16_t dst_seg = rd16(m, c.ss, static_cast<uint16_t>(c.bp.w + 6));
-    // push dest segment
-    push16(m, rd16(m, dst_seg, static_cast<uint16_t>(dst_off + 2)));
-    // push dest offset
-    push16(m, rd16(m, dst_seg, dst_off));
-
-    // far call to F_0000_23D2
+    // 2C88: push word ptr [bp + 0xc]
+    push16(m, rd16(m, c.ss, (uint16_t)(c.bp.w + 0xC)));
+    // 2C8B: push word ptr [bp + 0xa]
+    push16(m, rd16(m, c.ss, (uint16_t)(c.bp.w + 0xA)));
+    // 2C8E: les bx, ptr [bp + 4]
+    { uint16_t o = rd16(m, c.ss, (uint16_t)(c.bp.w + 0x4)); uint16_t s = rd16(m, c.ss, (uint16_t)(c.bp.w + 0x6)); c.bx.w = (uint16_t)(o); c.es = s; }
+    // 2C91: push word ptr es:[bx + 2]
+    push16(m, rd16(m, c.es, (uint16_t)(c.bx.w + 0x2)));
+    // 2C95: push word ptr es:[bx]
+    push16(m, rd16(m, c.es, (uint16_t)(c.bx.w)));
+    // 2C98: nop
+    // 2C99: push cs
     push16(m, c.cs);
-    push16(m, 0);
-    c.cs = static_cast<uint16_t>(0x0000 + kLoadSeg);
-    F_0000_23D2(m);
-    c.sp.w = static_cast<uint16_t>(c.sp.w + 10);
-
-    // Update dest pointer and null terminate:
-    uint16_t cur_off = rd16(m, dst_seg, dst_off);
-    cur_off = static_cast<uint16_t>(cur_off + c.si.w);
-    wr16(m, dst_seg, dst_off, cur_off);
-
-    uint16_t buf_seg = rd16(m, dst_seg, static_cast<uint16_t>(dst_off + 2));
-    wr8(m, buf_seg, cur_off, 0);
-
-    c.ax.w = c.si.w;
-    c.si.w = pop16(m);
-    c.bp.w = pop16(m);
-    // ret 10 (pops near ret + 10 bytes params)
-    uint16_t ret_ip = pop16(m);
-    c.sp.w = static_cast<uint16_t>(c.sp.w + 10);
-    // Simulated return to caller
-    (void)ret_ip;
+    // 2C9A: call 0x23d2
+    push16(m, 0x2C9D); F_0000_23D2(m);
+    // 2C9D: add sp, 0xa
+    { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0xAu); c.sp.w = (uint16_t)(t); }
+    // 2CA0: les bx, ptr [bp + 4]
+    { uint16_t o = rd16(m, c.ss, (uint16_t)(c.bp.w + 0x4)); uint16_t s = rd16(m, c.ss, (uint16_t)(c.bp.w + 0x6)); c.bx.w = (uint16_t)(o); c.es = s; }
+    // 2CA3: add word ptr es:[bx], si
+    { uint16_t t = op_add<uint16_t>(c, rd16(m, c.es, (uint16_t)(c.bx.w)), c.si.w); wr16(m, c.es, (uint16_t)(c.bx.w), (uint16_t)(t)); }
+    // 2CA6: push bx
+    push16(m, c.bx.w);
+    // 2CA7: push es
+    push16(m, c.es);
+    // 2CA8: mov es, word ptr es:[bx + 2]
+    c.es = (uint16_t)(rd16(m, c.es, (uint16_t)(c.bx.w + 0x2)));
+    // 2CAC: mov ax, es
+    c.ax.w = (uint16_t)(c.es);
+    // 2CAE: pop es
+    { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
+    // 2CAF: pop bx
+    { uint16_t t = pop16(m); c.bx.w = (uint16_t)(t); }
+    // 2CB0: mov bx, word ptr es:[bx]
+    c.bx.w = (uint16_t)(rd16(m, c.es, (uint16_t)(c.bx.w)));
+    // 2CB3: mov es, ax
+    c.es = (uint16_t)(c.ax.w);
+    // 2CB5: mov byte ptr es:[bx], 0
+    wr8(m, c.es, (uint16_t)(c.bx.w), (uint8_t)((uint8_t)0x0u));
+    // 2CB9: mov ax, si
+    c.ax.w = (uint16_t)(c.si.w);
+    // 2CBB: pop si
+    { uint16_t t = pop16(m); c.si.w = (uint16_t)(t); }
+    // 2CBC: pop bp
+    { uint16_t t = pop16(m); c.bp.w = (uint16_t)(t); }
+    // 2CBD: ret 0xa
+    (void)pop16(m); c.sp.w = (uint16_t)(c.sp.w + 0xA); return;
 }
 
 void F_0000_2CC0(Machine& m) {

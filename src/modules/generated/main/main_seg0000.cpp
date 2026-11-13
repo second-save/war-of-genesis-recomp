@@ -2752,6 +2752,40 @@ L_0C4F:
     (void)pop16(m); c.cs = pop16(m); return;
 }
 
+void F_0000_0C51(Machine& m) {
+    Cpu& c = m.cpu;
+    (void)c;
+    // 0C51: push si
+    push16(m, c.si.w);
+    // 0C52: mov si, 2
+    c.si.w = (uint16_t)((uint16_t)0x2u);
+    // 0C55: cmp si, word ptr [0x326]
+    op_sub<uint16_t>(c, c.si.w, rd16(m, c.ds, (uint16_t)(0x326)));
+    // 0C59: jae 0xc69
+    if (!c.cf) { goto L_0C69; }
+L_0C5B:
+    // 0C5B: push si
+    push16(m, c.si.w);
+    // 0C5C: nop
+    // 0C5D: push cs
+    push16(m, c.cs);
+    // 0C5E: call 0x1847
+    push16(m, 0x0C61); F_0000_1847(m);
+    // 0C61: pop cx
+    { uint16_t t = pop16(m); c.cx.w = (uint16_t)(t); }
+    // 0C62: inc si
+    { uint16_t t = op_inc<uint16_t>(c, c.si.w); c.si.w = (uint16_t)(t); }
+    // 0C63: cmp si, word ptr [0x326]
+    op_sub<uint16_t>(c, c.si.w, rd16(m, c.ds, (uint16_t)(0x326)));
+    // 0C67: jb 0xc5b
+    if (c.cf) { m.poll_tick(); goto L_0C5B; }
+L_0C69:
+    // 0C69: pop si
+    { uint16_t t = pop16(m); c.si.w = (uint16_t)(t); }
+    // 0C6A: retf
+    (void)pop16(m); c.cs = pop16(m); return;
+}
+
 void F_0000_0C6B(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;

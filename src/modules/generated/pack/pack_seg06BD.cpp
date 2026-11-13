@@ -1051,7 +1051,7 @@ L_05C1:
     { goto L_05F5; }
 L_05CA:
     // 05CA: lcall 0x137f, 0x1c7
-    push16(m, c.cs); push16(m, 0x05CF); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_2687(m);
+    push16(m, c.cs); push16(m, 0x05CF); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_01C7(m);
     // 05CF: cmp word ptr [0x4662], 0
     op_sub<uint16_t>(c, rd16(m, c.ds, (uint16_t)(0x4662)), (uint16_t)0x0u);
     // 05D4: jne 0x5e2
@@ -1117,7 +1117,7 @@ L_05FD:
     // 062D: push 0x6cf
     push16(m, (uint16_t)0x6CFu);
     // 0630: lcall 0x137f, 0x38e3
-    push16(m, c.cs); push16(m, 0x0635); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_5DA3(m);
+    push16(m, c.cs); push16(m, 0x0635); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_38E3(m);
     // 0635: add sp, 4
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x4u); c.sp.w = (uint16_t)(t); }
     // 0638: lcall 0x1f7f, 0xfc
@@ -1280,7 +1280,7 @@ L_06A5:
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x12u); c.sp.w = (uint16_t)(t); }
 L_0703:
     // 0703: lcall 0x137f, 0xc
-    push16(m, c.cs); push16(m, 0x0708); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_24CC(m);
+    push16(m, c.cs); push16(m, 0x0708); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_000C(m);
 L_0708:
     // 0708: lcall 0xa9c, 3
     push16(m, c.cs); push16(m, 0x070D); c.cs = (uint16_t)(0xA9C + kLoadSeg); F_0A9C_0003(m);
@@ -1704,7 +1704,7 @@ L_0965:
     { goto L_0993; }
 L_096E:
     // 096E: lcall 0x137f, 0x1c7
-    push16(m, c.cs); push16(m, 0x0973); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_2687(m);
+    push16(m, c.cs); push16(m, 0x0973); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_01C7(m);
     // 0973: cmp word ptr [0x4662], 0
     op_sub<uint16_t>(c, rd16(m, c.ds, (uint16_t)(0x4662)), (uint16_t)0x0u);
     // 0978: jne 0x986
@@ -1764,7 +1764,7 @@ L_09BB:
     // 09C4: push 0x720
     push16(m, (uint16_t)0x720u);
     // 09C7: lcall 0x137f, 0x38e3
-    push16(m, c.cs); push16(m, 0x09CC); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_5DA3(m);
+    push16(m, c.cs); push16(m, 0x09CC); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_38E3(m);
     // 09CC: add sp, 4
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x4u); c.sp.w = (uint16_t)(t); }
     // 09CF: lcall 0x1f7f, 0xfc
@@ -1921,7 +1921,7 @@ L_0A48:
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x12u); c.sp.w = (uint16_t)(t); }
 L_0A8B:
     // 0A8B: lcall 0x137f, 0xc
-    push16(m, c.cs); push16(m, 0x0A90); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_24CC(m);
+    push16(m, c.cs); push16(m, 0x0A90); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_000C(m);
 L_0A90:
     // 0A90: lcall 0xa9c, 3
     push16(m, c.cs); push16(m, 0x0A95); c.cs = (uint16_t)(0xA9C + kLoadSeg); F_0A9C_0003(m);
@@ -2284,7 +2284,7 @@ L_0C9F:
     { goto L_0CCD; }
 L_0CA8:
     // 0CA8: lcall 0x137f, 0x1c7
-    push16(m, c.cs); push16(m, 0x0CAD); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_2687(m);
+    push16(m, c.cs); push16(m, 0x0CAD); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_01C7(m);
     // 0CAD: cmp word ptr [0x4662], 0
     op_sub<uint16_t>(c, rd16(m, c.ds, (uint16_t)(0x4662)), (uint16_t)0x0u);
     // 0CB2: jne 0xcc0
@@ -2344,7 +2344,7 @@ L_0CF5:
     // 0CFE: push 0x771
     push16(m, (uint16_t)0x771u);
     // 0D01: lcall 0x137f, 0x38e3
-    push16(m, c.cs); push16(m, 0x0D06); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_5DA3(m);
+    push16(m, c.cs); push16(m, 0x0D06); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_38E3(m);
     // 0D06: add sp, 4
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x4u); c.sp.w = (uint16_t)(t); }
     // 0D09: lcall 0x1f7f, 0xfc
@@ -2501,7 +2501,7 @@ L_0D82:
     { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0x12u); c.sp.w = (uint16_t)(t); }
 L_0DC5:
     // 0DC5: lcall 0x137f, 0xc
-    push16(m, c.cs); push16(m, 0x0DCA); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_24CC(m);
+    push16(m, c.cs); push16(m, 0x0DCA); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_000C(m);
 L_0DCA:
     // 0DCA: lcall 0xa9c, 3
     push16(m, c.cs); push16(m, 0x0DCF); c.cs = (uint16_t)(0xA9C + kLoadSeg); F_0A9C_0003(m);
@@ -2850,7 +2850,7 @@ L_0F61:
     // 0F61: mov byte ptr [0x8532], 1
     wr8(m, c.ds, (uint16_t)((-31438)), (uint8_t)((uint8_t)0x1u));
     // 0F66: lcall 0x137f, 0xc
-    push16(m, c.cs); push16(m, 0x0F6B); c.cs = (uint16_t)(0x137F + kLoadSeg); F_1133_24CC(m);
+    push16(m, c.cs); push16(m, 0x0F6B); c.cs = (uint16_t)(0x137F + kLoadSeg); F_137F_000C(m);
     // 0F6B: lcall 0xa9c, 3
     push16(m, c.cs); push16(m, 0x0F70); c.cs = (uint16_t)(0xA9C + kLoadSeg); F_0A9C_0003(m);
     // 0F70: pop si
@@ -3052,7 +3052,7 @@ L_0FED:
     // 1082: push 2
     push16(m, (uint16_t)0x2u);
     // 1084: lcall 0x1757, 0x29df
-    push16(m, c.cs); push16(m, 0x1089); c.cs = (uint16_t)(0x1757 + kLoadSeg); F_1133_8C1F(m);
+    push16(m, c.cs); push16(m, 0x1089); c.cs = (uint16_t)(0x1757 + kLoadSeg); F_1757_29DF(m);
     // 1089: pop cx
     { uint16_t t = pop16(m); c.cx.w = (uint16_t)(t); }
     // 108A: mov byte ptr [0x85c7], 0

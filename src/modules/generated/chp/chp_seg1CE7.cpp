@@ -43,20 +43,10 @@ void F_1CE7_013E(Machine& m) {
     c.si.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0xA)));
     // 0162: mov ds, word ptr [bp + 0xc]
     c.ds = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0xC)));
-    if (c.ds == 0 && c.si.w == 0) {
-        c.ds = pop16(m); c.di.w = pop16(m); c.si.w = pop16(m);
-        c.di.w = pop16(m); c.si.w = pop16(m); c.bp.w = pop16(m);
-        (void)pop16(m); c.cs = pop16(m); return;
-    }
     // 0165: cld
     c.df = 0;
     // 0166: mov bx, word ptr [si]
     c.bx.w = (uint16_t)(rd16(m, c.ds, (uint16_t)(c.si.w)));
-    if (c.bx.w == 0) {
-        c.ds = pop16(m); c.di.w = pop16(m); c.si.w = pop16(m);
-        c.di.w = pop16(m); c.si.w = pop16(m); c.bp.w = pop16(m);
-        (void)pop16(m); c.cs = pop16(m); return;
-    }
     // 0168: inc si
     { uint16_t t = op_inc<uint16_t>(c, c.si.w); c.si.w = (uint16_t)(t); }
     // 0169: inc si
@@ -127,12 +117,10 @@ void F_1CE7_0278(Machine& m) {
     c.es = (uint16_t)(c.ax.w);
     // 0293: lds si, ptr [bp + 0xa]
     { uint16_t o = rd16(m, c.ss, (uint16_t)(c.bp.w + 0xA)); uint16_t s = rd16(m, c.ss, (uint16_t)(c.bp.w + 0xC)); c.si.w = (uint16_t)(o); c.ds = s; }
-    if (c.ds == 0 && c.si.w == 0) { goto L_02BC; }
     // 0296: lodsw ax, word ptr [si]
     str_lods<uint16_t>(m, c.ds, 0, false);
     // 0297: mov cx, ax
     c.cx.w = (uint16_t)(c.ax.w);
-    if (c.cx.w == 0) { goto L_02BC; }
 L_0299:
     // 0299: ror ecx, 0x10
     { uint32_t t = op_ror<uint32_t>(c, c.cx.e, 16); c.cx.e = (uint32_t)(t); }
