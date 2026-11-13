@@ -1,0 +1,16 @@
+{
+ "_comment": "Ending credits (TTLDATA/STAFF.SPR). One list per frame, one entry per text row from the top: null keeps the original row (English titles), a string replaces the Hangul row. Names are romanised in the usual Korean order (family name first).",
+ "frames": [
+  [null, "Jung Young-hee"],
+  [null, "Ahn Jung-gu", "Jung Seok-ho", null, "Cho Young-ki"],
+  [null, "Kim Jin"],
+  [null, "Nam Eun-young", "Lee Hee-sook"],
+  [null, "Park Moon-hee", "Um Ho-yong", "Jeon Seok-hwan", "Lee Sun-young", "Moon Hyo-seop", "Kim Kyu-min"],
+  [null, "Hwang Joo-eun"],
+  [null, "Choi Yeon-kyu", "Ahn Jung-gu", "Cho Nam-young", "Um Ho-yong", "Jung Seok-ho"],
+  [null, "Lee Beom-seon", "Nam In-hwan", "Heo Kyun", "Shin Young-sun", "Kim Jong-kyu", "Jeon Hong-cheol", "Sung Jung-woo"],
+  ["Chollian Simulation Club", "HiTEL Game Making Club", null, null, "All KOGA member companies", null],
+  [null, "Choi Yeon-kyu"],
+  []
+ ]
+}

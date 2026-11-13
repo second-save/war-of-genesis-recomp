@@ -111,12 +111,19 @@ naming choices (`glossary.tsv`). Town talk lines don't fit the game's 26-byte
 records, so the built files hold `@@id` markers and the text lives in
 `lang/en/TEXT.TXT`; the PACK text hook swaps them in.
 
-Status: all story dialogue, chapter prologues, town talk, battle scenarios
-(briefings and battle dialogue, `tools/text/battle.py`), NPC, unit and
-character names, and the menus, prompts and labels in CHP, PACK and CHRSYS are
-translated (`tools/text/exe_strings.py` lists the program strings), and so is
-the title menu and character gallery in TTL. Not yet: item/magic names and
-Korean text baked into images.
+Status: everything the game shows as text is in English: story dialogue,
+chapter prologues, town talk, battle scenarios (briefings and dialogue), NPC,
+unit, character and mercenary names, item names and descriptions
+(`tools/text/items.py`), the menus, prompts and labels of all five programs
+(`tools/text/exe_strings.py` lists them), and the title program's menu,
+character gallery and story scroll. Text drawn into pictures is redrawn in
+English by `tools/gfx/`: the chapter title cards (`titles.py`, committed as
+`translations/en/CHAPDATA/PERIOD*.VSP`), the character gallery pages
+(`ttl_pages.py`), the "Story" scroll (`story_scroll.py`) and the staff names
+in the ending credits (`ttl_staff.py`, romanised; needs the Copperplate font
+that ships with macOS, otherwise the names stay in Hangul). The Hangul in the
+title logo and the publisher's logo is part of the artwork and stays.
+`tools/gfx/spr.py` reads and writes Softmax's sprite formats.
 
 ## Debugging aids
 

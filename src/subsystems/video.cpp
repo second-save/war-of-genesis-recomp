@@ -117,9 +117,15 @@ void VideoSubsystem::set_mode(VideoMode mode) {
 
 uint8_t VideoSubsystem::read_port(uint16_t port) {
     switch (port) {
-    case 0x3DA: // Input Status 1 (Vertical Retrace bit 3)
-        vsync_phase_ ^= 8;
-        return vsync_phase_;
+    case 0x3DA: { // Input Status 1: bit 3 vertical retrace, bit 0 display disabled
+        // A 70 Hz frame on the host clock, retrace in the last ~8% of it, so
+        // loops that wait for the start of a retrace (TTL's scrolls and fades)
+        // run at the original speed.
+        static const uint64_t freq = SDL_GetPerformanceFrequency();
+        const uint64_t period = freq / 70;
+        const uint64_t phase = SDL_GetPerformanceCounter() % period;
+        return phase >= period - period / 12 ? 0x09 : 0x00;
+    }
     case 0x3C8:
         return dac_write_idx_;
     case 0x3C7:

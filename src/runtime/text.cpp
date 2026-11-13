@@ -18,6 +18,7 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <cstdio>
 #include <cstdlib>
@@ -150,8 +151,27 @@ const std::string* string_text(Machine& m, const std::string& s, bool* compacted
     return &(results[s] = r);
 }
 
+// GENESIS_TRACE_UNTRANSLATED=1: log each distinct Korean string drawn without
+// a translation (to find what is left to translate).
+void log_untranslated(const std::string& text) {
+    static const bool on = std::getenv("GENESIS_TRACE_UNTRANSLATED") != nullptr;
+    if (!on) return;
+    bool hangul = false;
+    for (unsigned char ch : text) hangul |= ch > 0x7F;
+    static std::unordered_set<std::string> seen;
+    if (hangul && seen.insert(text).second) {
+        std::string esc;
+        for (char ch : text) esc += ch == '\n' ? std::string("\\n") : std::string(1, ch);
+        std::fprintf(stderr, "[UNTR] %s\n", esc.c_str());
+    }
+}
+
 // Read a null-terminated string and apply the translation tables.
-std::string translated_string(Machine& m, uint16_t seg, uint16_t off, size_t* padded_width = nullptr) {
+// A replacement starting with '^' (strings.tsv) is centred on the Korean
+// string's width even when it is wider: fields where the game centres the
+// name itself (item names in equipment slots).
+std::string translated_string(Machine& m, uint16_t seg, uint16_t off, size_t* padded_width = nullptr,
+                              bool* centre = nullptr) {
     std::string text;
     for (uint16_t p = off; text.size() < 2048; ++p) {
         uint8_t ch = rd8(m, seg, p);
@@ -164,8 +184,14 @@ std::string translated_string(Machine& m, uint16_t seg, uint16_t off, size_t* pa
         // A name padded with spaces for centring (matched without its spaces):
         // report its original width (8 px per byte) so the caller can centre it.
         if (padded_width && compacted) *padded_width = text.size() * 8;
+        if (!t->empty() && (*t)[0] == '^') {
+            if (padded_width) *padded_width = text.size() * 8;
+            if (centre) *centre = true;
+            return t->substr(1);
+        }
         return *t;
     }
+    log_untranslated(text);
     return text;
 }
 
@@ -325,7 +351,8 @@ static void lib_draw_string(Machine& m, FunctionPointer original, const LibText&
     auto arg = [&](int i) { return rd16(m, c.ss, static_cast<uint16_t>(sp + 4 + 2 * i)); };
     const int x0 = static_cast<int16_t>(arg(0)), y0 = static_cast<int16_t>(arg(1));
     size_t padded = 0;
-    std::string text = translated_string(m, arg(3), arg(2), &padded);
+    bool centre = false;
+    std::string text = translated_string(m, arg(3), arg(2), &padded, &centre);
     bool hangul = false;
     for (unsigned char ch : text) hangul |= ch > 0x7F;
     const uint16_t ds = c.ds;
@@ -365,7 +392,7 @@ static void lib_draw_string(Machine& m, FunctionPointer original, const LibText&
             int f, l;
             w += metrics(ch, f, l);
         }
-        if (static_cast<int>(padded) > w) x += (static_cast<int>(padded) - w) / 2;
+        if (static_cast<int>(padded) > w || centre) x += (static_cast<int>(padded) - w) / 2;
     }
     for (size_t i = 0; i < text.size(); ++i) {
         unsigned char ch = static_cast<unsigned char>(text[i]);
@@ -441,10 +468,12 @@ void ttl_draw_string(Machine& m, FunctionPointer original) {
     }
     const std::string* t = string_text(m, ko);
     if (!t) {
+        log_untranslated(ko);
         original(m);
         return;
     }
     std::string en = *t;
+    if (!en.empty() && en[0] == '^') en.erase(0, 1);
     en.erase(0, en.find_first_not_of(' '));
     if (std::getenv("GENESIS_TRACE_TEXT")) std::fprintf(stderr, "[TEXT] ttl '%s'\n", en.c_str());
     const uint32_t saved_cx = c.cx.e, saved_si = c.si.e, saved_di = c.di.e;

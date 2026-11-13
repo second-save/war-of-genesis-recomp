@@ -1,0 +1,577 @@
+[
+ {
+  "item": 0,
+  "hash": "40972524f3",
+  "en": "The shortest and lightest of all weapons. Weak, but it strikes fast."
+ },
+ {
+  "item": 1,
+  "hash": "f3470b023e",
+  "en": "A dagger home to a wind spirit. Raises the wielder's agility and magic."
+ },
+ {
+  "item": 2,
+  "hash": "7146accf15",
+  "en": "The assassin's hidden weapon. Ordinary power, but prone to critical hits."
+ },
+ {
+  "item": 3,
+  "hash": "1550ef4614",
+  "en": "The finest dagger, worn on the wrist. Unpredictable power; awakens the wielder's gifts."
+ },
+ {
+  "item": 4,
+  "hash": "27154c427e",
+  "en": "A fairly short, light sword. Don't expect much power from it."
+ },
+ {
+  "item": 5,
+  "hash": "afd21bd38c",
+  "en": "A short sword of the great House of Chrysaor. More than just power: it has many virtues."
+ },
+ {
+  "item": 6,
+  "hash": "c00c5260ec",
+  "en": "A short sword forged by a high mage, sealing the power of fire magic."
+ },
+ {
+  "item": 7,
+  "hash": "5a76d56423",
+  "en": "A short sword offered to Cassandra, beauty of old. Aids wielders who lack strength."
+ },
+ {
+  "item": 8,
+  "hash": "b90b63450e",
+  "en": "Antaria's most common weapon, steady in attack. With a shield, it balances offence and defence."
+ },
+ {
+  "item": 9,
+  "hash": "e746a1ac51",
+  "en": "A sword for the charge: light, tough and keen. A hero's weapon."
+ },
+ {
+  "item": 10,
+  "hash": "6b16e75feb",
+  "en": "A long sword of holy silver. Raises resistance to dark magic."
+ },
+ {
+  "item": 11,
+  "hash": "6b97bb443b",
+  "en": "A long sword of the great House of Chrysaor, proud of its superior power."
+ },
+ {
+  "item": 12,
+  "hash": "edc22433e0",
+  "en": "A legendary sword forged by the ancient gods. Mighty power and many virtues."
+ },
+ {
+  "item": 13,
+  "hash": "0d101f480e",
+  "en": "Made by Lord Mogley, heretic of the House of Chrysaor. Stronger than a Chrysaor."
+ },
+ {
+  "item": 14,
+  "hash": "3e34320225",
+  "en": "A legendary magic sword with the power of lightning sleeping within."
+ },
+ {
+  "item": 15,
+  "hash": "533a33a5b2",
+  "en": "The emblem of the Granada trading company."
+ },
+ {
+  "item": 16,
+  "hash": "958a0c3075",
+  "en": "A practice sword for those in martial training."
+ },
+ {
+  "item": 17,
+  "hash": "44494ed073",
+  "en": "A legendary magic sword with the power of ice sleeping within."
+ },
+ {
+  "item": 18,
+  "hash": "4b9843809e",
+  "en": "A long sword imbued with magic, made for magic knights."
+ },
+ {
+  "item": 19,
+  "hash": "3a14d27b74",
+  "en": "A two-handed sword, broader and heavier than most. No shield can be used with it."
+ },
+ {
+  "item": 20,
+  "hash": "ee78425e5d",
+  "en": "A magic sword imbued with dark magic. It numbs the foe's mind."
+ },
+ {
+  "item": 21,
+  "hash": "8da9f43f2c",
+  "en": "The beloved sword of Wiesbaden of the Sun, one of the Twelve Gods."
+ },
+ {
+  "item": 22,
+  "hash": "f5149face5",
+  "en": "One of the Three Treasures of Pandragon. Great power, imbued with lightning."
+ },
+ {
+  "item": 23,
+  "hash": "335b86e81b",
+  "en": "The magic sword of the dark knights, forged in Gaysir."
+ },
+ {
+  "item": 24,
+  "hash": "5d09d636b0",
+  "en": "The beloved sword of Baek Okdang."
+ },
+ {
+  "item": 25,
+  "hash": "4ba4ae6cb8",
+  "en": "A huge sword, broader and longer in the blade than a long sword. No shield."
+ },
+ {
+  "item": 26,
+  "hash": "087f7c5c11",
+  "en": "The Chrysaor greatsword, prized and coveted by every warrior."
+ },
+ {
+  "item": 27,
+  "hash": "6cd8b0d5f5",
+  "en": "The sword of the brave."
+ },
+ {
+  "item": 28,
+  "hash": "f43b6996cc",
+  "en": "The beloved sword of Shakbari, god of war."
+ },
+ {
+  "item": 29,
+  "hash": "6df05a4523",
+  "en": "The ultimate sword, born, legend says, of the power of Deimos, lord of the Thirteen Evil Gods."
+ },
+ {
+  "item": 30,
+  "hash": "974719a2bd",
+  "en": "A warrior's battle axe. It can strike a wide area."
+ },
+ {
+  "item": 31,
+  "hash": "f85accad1b",
+  "en": "A masterpiece of the House of Burova, master axe makers."
+ },
+ {
+  "item": 32,
+  "hash": "9e5f8e0033",
+  "en": "A battle axe for the charge."
+ },
+ {
+  "item": 33,
+  "hash": "0cf3c4265f",
+  "en": "A butcher's axe that kills in one blow."
+ },
+ {
+  "item": 34,
+  "hash": "a5b68011d4",
+  "en": "A practice axe used by warriors in training."
+ },
+ {
+  "item": 35,
+  "hash": "c47ecbe56e",
+  "en": "A broad double-bladed axe. Stronger than a battle axe, and it helps in defence too."
+ },
+ {
+  "item": 36,
+  "hash": "a34d18a1bd",
+  "en": "A broad axe with reinforced power."
+ },
+ {
+  "item": 37,
+  "hash": "9703d953fc",
+  "en": "The broad axe favoured by Raevius of the Earth, one of the Twelve Gods."
+ },
+ {
+  "item": 38,
+  "hash": "75a2790b35",
+  "en": "A magic axe sealing the power of fire magic."
+ },
+ {
+  "item": 39,
+  "hash": "c77a49c81d",
+  "en": "A huge, broad double-bladed axe. It takes great strength and skill to wield."
+ },
+ {
+  "item": 40,
+  "hash": "08f19cf014",
+  "en": "The finest masterpiece of the House of Burova of Dagal. A kind of great axe."
+ },
+ {
+  "item": 41,
+  "hash": "029685523f",
+  "en": "A magic axe sealing the power of lightning."
+ },
+ {
+  "item": 42,
+  "hash": "d90903707e",
+  "en": "The axe of Karat of the Lightning, one of the Twelve Gods."
+ },
+ {
+  "item": 43,
+  "hash": "d29ce6c729",
+  "en": "The common foot soldier's spear. It can strike foes at some distance."
+ },
+ {
+  "item": 44,
+  "hash": "e00ff2433d",
+  "en": "A stronger version of the spear."
+ },
+ {
+  "item": 45,
+  "hash": "e453728c93",
+  "en": "A masterpiece of Sansimir, the famous spear maker."
+ },
+ {
+  "item": 46,
+  "hash": "87f3508dfa",
+  "en": "The practice spear used by the guards of Astania."
+ },
+ {
+  "item": 47,
+  "hash": "b76b302c49",
+  "en": "A spear for riders."
+ },
+ {
+  "item": 48,
+  "hash": "8b8b5ee90c",
+  "en": "A kind of lance with mysterious hidden virtues."
+ },
+ {
+  "item": 49,
+  "hash": "2ea3863c81",
+  "en": "A masterpiece of Xavir, the great lance makers."
+ },
+ {
+  "item": 50,
+  "hash": "1a8a86a95c",
+  "en": "A heavy, powerful weapon: a spear tipped with an axe blade."
+ },
+ {
+  "item": 51,
+  "hash": "dadd346e61",
+  "en": "A masterpiece of Sarisada, the great halberd makers."
+ },
+ {
+  "item": 52,
+  "hash": "8163d8584c",
+  "en": "A magic halberd imbued with dark magic. It has many virtues."
+ },
+ {
+  "item": 53,
+  "hash": "05d5497d5f",
+  "en": "The huge halberd of the dragon knights. Strong attack and superb magic qualities."
+ },
+ {
+  "item": 54,
+  "hash": "10b54b0cfd",
+  "en": "Strikes from afar, but is weak in attack and defence."
+ },
+ {
+  "item": 55,
+  "hash": "79aa35b1bb",
+  "en": "Arrows fletched with eagle feathers for more piercing power."
+ },
+ {
+  "item": 56,
+  "hash": "8fcb8bab96",
+  "en": "A big, long bow. It can't shoot fast, but it hits hard."
+ },
+ {
+  "item": 57,
+  "hash": "3aa2b0389c",
+  "en": "A mechanism gives this bow more range and power."
+ },
+ {
+  "item": 58,
+  "hash": "a1cbe9ec34",
+  "en": "A stronger crossbow that shoots many bolts at once."
+ },
+ {
+  "item": 59,
+  "hash": "8e32c411eb",
+  "en": "A magic bow sealing powerful lightning magic."
+ },
+ {
+  "item": 60,
+  "hash": "60d06f1d87",
+  "en": "The finest crossbow, made in Cutis."
+ },
+ {
+  "item": 61,
+  "hash": "56ec82ea7a",
+  "en": "A priest's striking weapon, with magical virtues too."
+ },
+ {
+  "item": 62,
+  "hash": "a40aa22df5",
+  "en": "A stronger mace: both its power and its magic are improved."
+ },
+ {
+  "item": 63,
+  "hash": "edc95c6e9a",
+  "en": "One of the Three Treasures of Pandragon. It supports many magical effects."
+ },
+ {
+  "item": 64,
+  "hash": "3d028b535c",
+  "en": "A priest's striking weapon."
+ },
+ {
+  "item": 65,
+  "hash": "f2ddcc0165",
+  "en": "A mage's staff. Raises the wielder's magical abilities."
+ },
+ {
+  "item": 66,
+  "hash": "9c0c05262b",
+  "en": "A fine staff for mages, with stronger magical virtues."
+ },
+ {
+  "item": 67,
+  "hash": "f0f24398c1",
+  "en": "A kind of rod with especially strong fire magic."
+ },
+ {
+  "item": 68,
+  "hash": "2dd4951d3b",
+  "en": "A kind of rod with especially strong ice magic."
+ },
+ {
+  "item": 69,
+  "hash": "03bfba0914",
+  "en": "A kind of rod with especially strong lightning magic."
+ },
+ {
+  "item": 70,
+  "hash": "65e7d8ae74",
+  "en": "A kind of rod with especially strong dark magic."
+ },
+ {
+  "item": 71,
+  "hash": "1d8a461546",
+  "en": "??????"
+ },
+ {
+  "item": 72,
+  "hash": "3e3c6b239e",
+  "en": "A mage's wand with a special power to raise MP."
+ },
+ {
+  "item": 73,
+  "hash": "f4b6a99e1a",
+  "en": "A round shield of wood."
+ },
+ {
+  "item": 74,
+  "hash": "072ea8a741",
+  "en": "A round shield of bronze."
+ },
+ {
+  "item": 75,
+  "hash": "8de9606e5c",
+  "en": "A round shield of steel."
+ },
+ {
+  "item": 76,
+  "hash": "67ca73a090",
+  "en": "A round shield of dragon scales."
+ },
+ {
+  "item": 77,
+  "hash": "408bd881ed",
+  "en": "A knight's shield of wood."
+ },
+ {
+  "item": 78,
+  "hash": "0988ce06f7",
+  "en": "A knight's shield of bronze."
+ },
+ {
+  "item": 79,
+  "hash": "1c2eb99784",
+  "en": "A knight's shield of steel."
+ },
+ {
+  "item": 80,
+  "hash": "1cad5f4094",
+  "en": "A knight's shield of dragon scales."
+ },
+ {
+  "item": 81,
+  "hash": "85a2c86cc5",
+  "en": "A tower shield of wood."
+ },
+ {
+  "item": 82,
+  "hash": "9c700a42b3",
+  "en": "A tower shield of bronze."
+ },
+ {
+  "item": 83,
+  "hash": "11c00c1b62",
+  "en": "A tower shield of steel."
+ },
+ {
+  "item": 84,
+  "hash": "5b63c0c417",
+  "en": "A tower shield of dragon scales."
+ },
+ {
+  "item": 85,
+  "hash": "986ed6fa73",
+  "en": "A shield protected by powerful magic. Good elemental affinity too."
+ },
+ {
+  "item": 86,
+  "hash": "af9921bc8c",
+  "en": "A shield sealing the spirit of fire."
+ },
+ {
+  "item": 87,
+  "hash": "6535733ff3",
+  "en": "A shield sealing the spirit of ice."
+ },
+ {
+  "item": 88,
+  "hash": "97b7265b91",
+  "en": "A shield sealing the spirit of lightning."
+ },
+ {
+  "item": 89,
+  "hash": "231edb49a5",
+  "en": "Protects the wearer from fire attacks."
+ },
+ {
+  "item": 90,
+  "hash": "25cbe6a388",
+  "en": "Protects the wearer from ice attacks."
+ },
+ {
+  "item": 91,
+  "hash": "7ffd663c16",
+  "en": "Protects the wearer from lightning attacks."
+ },
+ {
+  "item": 92,
+  "hash": "0418401ad5",
+  "en": "Protects the wearer from dark magic."
+ },
+ {
+  "item": 93,
+  "hash": "82f180c969",
+  "en": "A necklace made from a dragon's reverse scale. It has many effects."
+ },
+ {
+  "item": 94,
+  "hash": "d10b49825b",
+  "en": "A potion with many effects."
+ },
+ {
+  "item": 95,
+  "hash": "676cf73f01",
+  "en": "A mysterious magic stone."
+ },
+ {
+  "item": 96,
+  "hash": "b1d6a3e3d5",
+  "en": "One of the Three Treasures of Pandragon. It has many effects."
+ },
+ {
+  "item": 97,
+  "hash": "8025ed4031",
+  "en": "Lets the wearer act more often in battle."
+ },
+ {
+  "item": 98,
+  "hash": "25c5cd91a6",
+  "en": "Raises speed and defence."
+ },
+ {
+  "item": 99,
+  "hash": "4300388216",
+  "en": "A potion made from a dragon's tooth."
+ },
+ {
+  "item": 100,
+  "hash": "231edb49a5",
+  "en": "Protects the wearer from fire attacks."
+ },
+ {
+  "item": 101,
+  "hash": "25cbe6a388",
+  "en": "Protects the wearer from ice attacks."
+ },
+ {
+  "item": 102,
+  "hash": "7ffd663c16",
+  "en": "Protects the wearer from lightning attacks."
+ },
+ {
+  "item": 103,
+  "hash": "0418401ad5",
+  "en": "Protects the wearer from dark magic."
+ },
+ {
+  "item": 104,
+  "hash": "d2bc19ac63",
+  "en": "Raises the wearer's strength."
+ },
+ {
+  "item": 105,
+  "hash": "24d3b71560",
+  "en": "Raises the wearer's speed."
+ },
+ {
+  "item": 106,
+  "hash": "f137cb27c1",
+  "en": "Raises the wearer's wisdom."
+ },
+ {
+  "item": 107,
+  "hash": "de714f39cd",
+  "en": "Raises the wearer's defence."
+ },
+ {
+  "item": 108,
+  "hash": "244954498d",
+  "en": "????????"
+ },
+ {
+  "item": 109,
+  "hash": "087d65736a",
+  "en": "A mysterious cloak home to a wind spirit."
+ },
+ {
+  "item": 110,
+  "hash": "be5e7c6f31",
+  "en": "A crystal ball that raises magic power."
+ },
+ {
+  "item": 111,
+  "hash": "65753254e9",
+  "en": "An orb used by dark mages."
+ },
+ {
+  "item": 112,
+  "hash": "a489429dfe",
+  "en": "A special orb sealing more power than an ordinary orb."
+ },
+ {
+  "item": 113,
+  "hash": "09c4391e61",
+  "en": "Reduces both physical and magical attacks."
+ },
+ {
+  "item": 114,
+  "hash": "a4f95a6794",
+  "en": "A mysterious item of unknown effect."
+ }
+]

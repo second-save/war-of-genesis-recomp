@@ -137,7 +137,6 @@
 아이템	Items
 상점	Shop
 세이브	Save
-로드	Load
 창고ITEM	Storage
 게임으로	Back to Game
 마을 번호	Town No.
@@ -388,3 +387,147 @@ G.스케빈져	G. Scavenger
 암호가 맞았습니다. 게임으로 넘어갑니다.	Correct password. On to the game.
 암호가 틀렸습니다.	Wrong password.
 암호가 틀렸습니다. 게임을 계속 진행시킬 수 없습니다.	Wrong password. The game can't continue.
+# Mercenaries and other characters (PLAYER.DAT, BBOXCHR.DEF)
+에크만	Eckman
+미카엘	Michael
+베케네	Bekene
+카슈타르	Kashtar
+라미온	Ramion
+사드	Sade
+스플릿	Split
+인그람	Ingram
+가웰	Gawel
+보리스	Boris
+브라이언	Brian
+베네스다	Benesda
+하지란	Hajiran
+호드	Hod
+사키스키	Sakiski
+카스	Kas
+바하무트	Bahamut
+화리스	Faris
+폴터	Polter
+크리스	Chris
+카인	Cain
+캐미	Cammy
+자알	Zaal
+그레이프	Grape
+죠셉	Joseph
+루델	Rudel
+파웰	Powell
+나크	Nak
+샘프라스	Sampras
+아가시	Agassi
+쿠니	Kuni
+볼츠만	Boltzmann
+백옥당	Baek Okdang
+탐린	Tamlin
+스퍼	Spur
+도미니크	Dominique
+울드	Urd
+우드다나	Udana
+# Item names (ITEM.DAT / ITEM.SYF). "^" = centre on the Korean width (the game centres them).
+단도	^Dagger
+질풍소도	^Hurricane
+은장도	^Stiletto
+그라디우스	^Gradius
+소검	^Short Sword
+크리사오르 E	^Chrysaor E
+적소검	^Red Blade
+카산드라	^Cassandra
+장검	^Long Sword
+어절트 소드	^Assault Sword
+실버소드	^Silver Sword
+크리사오르 G	^Chrysaor G
+발뭉	^Balmung
+모글레이	^Mogley
+뇌전검	^Thunder Blade
+그라나다	^Granada
+수련검	^Drill Sword
+빙설검	^Ice Blade
+마인검	^Mage Blade
+중검	^Heavy Sword
+카오스 소드	^Chaos Sword
+액스칼리버	^Excalibur
+스탐블링거	^Stormbringer
+암흑검	^Dark Sword
+백엽검	^White Leaf
+대검	^Greatsword
+크리사오르 A	^Chrysaor A
+바리사다	^Barisada
+듀렌달	^Durendal
+아수라	^Asura
+전투도끼	^Battle Axe
+부로바 주니어	^Burova Jr.
+어절트 액스	^Assault Axe
+도살부	^Slayer
+수련도끼	^Drill Axe
+브로드 액스	^Broad Axe
+클레이버	^Cleaver
+어스쉐이커	^Earthshaker
+화염인	^Flame Axe
+그레이트 액스	^Great Axe
+부로바	^Burova
+썬더액스	^Thunder Axe
+묠니르	^Mjollnir
+창	^Spear
+트라이던트	^Trident
+산시미르	^Sansimir
+수련창	^Drill Spear
+랜서	^Lance
+궁그닐	^Gungnir
+자비르	^Xavir
+미늘창	^Halberd
+사리사다	^Sarisada
+게이볼그	^Gae Bolg
+드래건 버스터	^Dragon Buster
+활	^Bow
+이글러	^Eagler
+장궁	^Longbow
+석궁	^Crossbow
+연노	^Repeater
+썬더볼츠	^Thunderbolts
+헬 화이어	^Hellfire
+메이스	^Mace
+헤비 메이스	^Heavy Mace
+글로리아 홀	^Glory Scepter
+프레일	^Flail
+스태프	^Staff
+로드	^Rod
+화이어 로드	^Fire Rod
+아이스 로드	^Ice Rod
+썬더 로드	^Thunder Rod
+다크 로드	^Dark Rod
+??? 라켓	^??? Racket
+원드	^Wand
+마법방패	^Magic Shield
+플레임 실드	^Flame Shield
+아이스 실드	^Ice Shield
+썬더 실드	^Storm Shield
+적색 목걸이	^Red Pendant
+백색 목걸이	^White Pendant
+청색 목걸이	^Blue Pendant
+흑색 목걸이	^Black Pendant
+용린 목걸이	^Dragon Charm
+엔젤 더스트	^Angel Dust
+화이어크레스트	^Fire Crest
+화이어 크레스트	^Fire Crest
+패자의 왕관	^Supreme Crown
+윈드 부츠	^Wind Boots
+기사망토	^Knight's Cloak
+용아	^Dragon Fang
+불꽃반지	^Flame Ring
+얼음 반지	^Ice Ring
+번개반지	^Thunder Ring
+암흑반지	^Dark Ring
+힘의 반지	^Power Ring
+바람반지	^Wind Ring
+지혜의 반지	^Wisdom Ring
+수호의 반지	^Guardian Ring
+제프리바지	^Jeff's Pants
+바람의 망토	^Wind Cloak
+오브	^Orb
+다크 오브	^Dark Orb
+크리스탈 오브	^Crystal Orb
+어뮬렛	^Amulet
+카오스 큐브	^Chaos Cube

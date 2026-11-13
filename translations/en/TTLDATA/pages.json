@@ -1,0 +1,51 @@
+[
+ {
+  "file": "ARCION_.SPR",
+  "en": "Arcion - age 38. He passes himself off as a wandering swordsman, but he is in fact the young leader of the mercenary guild Kashmir. He sets out for Blueseed, the pirate isle, to solve the disappearance of Kaja, daughter of his close friend Baja."
+ },
+ {
+  "file": "BERADIN_.SPR",
+  "en": "Beradin - the Black Prince's close friend and Chancellor of the Gaysir Empire. While the Black Prince is away at war, he has handled most affairs of state. Even now he wields real power in the Black Prince's stead from behind the scenes, and sends Imperial troops to ruins across the land to pursue some secret research."
+ },
+ {
+  "file": "BLACK_.SPR",
+  "en": "The Black Prince - first in line to the throne of Gaysir. His true name, Karl Styner, he inherited from his father. He is said to have first taken the field at twelve, and since seventeen, when his father Emperor Karl was gravely wounded in the war with Pandragon, he has led the Imperial army in all but name. For his black armour, black helm and black cloak, and his long black hair, the soldiers named him 'the Black Prince', a title used more than his real name. Cold and taciturn, he holds the respect and loyalty of his troops, and is judged a superb warrior and strategist. He brought Trisys and Garad to heel by force, forging the strongest alliance in the history of the Dark Armor, and invaded Cyrups and made it Imperial land. Above all, he is revered as the greatest hero in Gaysir's history for his victory at the Battle of the Grates Plain in the Cyrups campaign. There he broke with the old square formations and used a new oblique order to annihilate a Silver Arrow army more than twice his size. With that battle he toppled Pandragon, the greatest kingdom of Antaria, and the small northern kingdom of Cutis, and took nearly all of the continent save part of the east (Astania and Dagal)."
+ },
+ {
+  "file": "CROW_.SPR",
+  "en": "The Black Prince - first in line to the throne of Gaysir. His true name, Karl Styner, he inherited from his father. He is said to have first taken the field at twelve, and since seventeen, when his father Emperor Karl was gravely wounded in the war with Pandragon, he has led the Imperial army in all but name. For his black armour, black helm and black cloak, and his long black hair, the soldiers named him 'the Black Prince', a title used more than his real name. Cold and taciturn, he holds the respect and loyalty of his troops, and is judged a superb warrior and strategist. He brought Trisys and Garad to heel by force, forging the strongest alliance in the history of the Dark Armor, and invaded Cyrups and made it Imperial land. Above all, he is revered as the greatest hero in Gaysir's history for his victory at the Battle of the Grates Plain in the Cyrups campaign. There he broke with the old square formations and used a new oblique order to annihilate a Silver Arrow army more than twice his size. With that battle he toppled Pandragon, the greatest kingdom of Antaria, and the small northern kingdom of Cutis, and took nearly all of the continent save part of the east (Astania and Dagal).",
+  "note": "The original CROW_.SPR is identical to BLACK_.SPR (a bug in the 1996 data); kept as is."
+ },
+ {
+  "file": "DRAUP_.SPR",
+  "en": "Draupnir - age unknown. An old man, perhaps the most revered sage of all, who has served as Pandragon's chancellor for centuries. No one knows his age or origins, yet his influence is such that Pandragon is said to have truly been ruled through his hands. After the defeat at Cyrups he led Rashid and Iyolin out of the royal castle into exile in Dagal, and he continues his research to find the Three Treasures of Pandragon and break the seal of the Twelve Gods."
+ },
+ {
+  "file": "GISHNE_.SPR",
+  "en": "Gishne - a warlock from Gaysir. A scholarly mage in his mid-thirties, deeply versed not only in magic but in archaeology and linguistics. A graduate of the Empire's Royal Academy, he travels the world exploring ancient ruins. While exploring the pyramids of the Trisys desert he happens to rescue Robin, and takes her with him to Bifrost."
+ },
+ {
+  "file": "GS_.SPR",
+  "en": "GS (Gray Scavenger) - age and real name unknown; a ranger in his late twenties. Four years ago the old ranger Anagi found him with a head wound, and having lost all memory of his past, he travelled with Anagi. Since Anagi died of illness two years ago he has lived as a lone ranger, roaming Bifrost and making a name as an expert mountain guide and dungeon explorer. Introduced by the Grand Duke of Bifrost, he helps Iyolin's party, hunted by the Imperial army, cross the Gigantes Mountains."
+ },
+ {
+  "file": "IYOLIN_.SPR",
+  "en": "Iyolin - age 23 (in 1207). Princess of Pandragon. When her father the king and her brothers all died at Grates and the kingdom fell, Pandragon's chancellor Draupnir led her and her younger brother Prince Rashid, with what remained of Pandragon's forces, into exile in Dagal. As the years passed she became the heart of the resistance against the Empire, leading the old Pandragon forces in a guerrilla war that harries the Imperial army everywhere. Having lost her father and brothers so young, she grew cold and ruthless; to the Imperial army she is a figure of terror, called Nemesis, Goddess of Vengeance. The story begins as she seizes the Scepter of Glory, sacred treasure of the old Kingdom of Pandragon, from an Imperial convoy."
+ },
+ {
+  "file": "KAJA_.SPR",
+  "en": "Kaja - age 18. Only daughter of Baja, head of the Amigo Trading Company. Having lost her mother young and grown up with all of her father's love to herself, she is headstrong and wilful. When the Blueseed pirates' raids put the Amigo fleet in peril, she defies her father and sets sail to chart a new sea route."
+ },
+ {
+  "file": "LACID_.SPR",
+  "en": "Rashid - age 15, Iyolin's younger brother. Endlessly curious, he causes a lot of trouble. He looks up to GS and even follows him on the quest for the holy sword. After GS disappears he fights the Empire alongside Iyolin, but unlike his vengeful sister he wins many hearts with his tolerance and kindness."
+ },
+ {
+  "file": "ROBIN_.SPR",
+  "en": "Robin - a thief from Cyrups City. She happens to get her hands on an ancient document the Granada Trading Company obtained at Beradin's request, and finds herself hunted by the Imperial army. A tough 17-year-old from the big city's slums, she is deeply self-conscious about where she comes from."
+ },
+ {
+  "file": "SHURI_.SPR",
+  "en": "Shuri - a Templar of Astania. By Astanian custom, before becoming a full Templar (a knight of the Cathedral Order) one travels the world for three years to broaden one's horizons, and Shuri is in that time of training. Passing through the naval port of Dakama, he helps Kaja, who is looking for the mapmaker Largo, and ends up travelling with her. Calm and gentle, he becomes the only one who can rein in wild, wilful Kaja. A handsome young man of 20."
+ }
+]

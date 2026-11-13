@@ -1,0 +1,61 @@
+# Title menu "Story" scroll (TTLDATA/MAL.CF). Built by tools/gfx/story_scroll.py.
+# "= text" centres a line, "> text" is a list line, a blank line separates
+# paragraphs, "~ text" is an indented closing line.
+= << Prologue to the War of Genesis >>
+
+
+> The Twelve Gods of Light
+
+> Praios the Absolute
+> Wiesbaden of the Sun
+> Raevius of the Earth
+> Obscura of Wisdom
+> Shakbari of War
+> Bidgoshze of the Wind
+> Ergamenes of Fire
+> Karat of Lightning
+> Diene of Justice
+> Atreus of Building
+> Abydos of Mercy
+> Erziyas of Devotion
+
+
+> The Thirteen Evil Gods of Darkness
+
+> Deimos of Chaos
+> Diablo of the Moon
+> Iskenderun of the Sea
+> Raman of the Clouds
+> Doneproges of Death
+> Alhasma of Wealth
+> Valone of Pride
+> Yuganea of Water
+> Sirivelle of Disease
+> Veramode of Conspiracy
+> Obadiah of Strife
+> Eustasia of Ruin
+> Ishvike of Poison
+
+
+Here in Antaria, the twelve gods who rule the light and the thirteen evil gods who rule the darkness have been worshipped since ancient times. The many races, humans among them, have long been divided into two great lineages by the gods they believe in and follow: those who worship the gods of light are called the Esprit, and those who believe in the evil gods are called the Grimma.
+
+Since the Ragnarok (the War of the Gods) of ages past, they have fought for their gods, and even now, long after the gods ceased to appear after Ragnarok, they still clash with one another.
+
+The Esprit are made up mainly of the Elves, said to be born of the gods of light and humans, with the humans of the east of the continent (where the sun rises) and the Dwarves of the north. The Grimma are made up mainly of the Devils, said to be born of the evil gods and humans, with the humans of the west (where the sun sets), the Ogres and the winged Valtans. Beyond these, dozens of neutral races belonging to neither side, and primitive races and creatures without reason, also live in Antaria.
+
+The creatures of Antaria have always held a supernatural power called magic, which grew into a powerful means of war. Those strong in magic, the Elves first among them, gained power through the magic armors said to have been used by the ancient gods of light, while the Devils fought the magic armors with dark magic, a magic of their own dozens of times stronger than any other. The Elves, able to use magic armors, became the leaders of the Esprit, while the Devils, wielding dark magic, ruled over the Grimma and warred with the Esprit for supremacy over Antaria.
+
+For thousands of years the two powers held in balance as dozens of nations rose and fell. Today the Grimma's alliance of four nations, led by the Devil-ruled Empire of Gaysir, faces the Esprit's union of kingdoms, led by Pandragon, a kingdom of humans and Elves; with the neutral trading state of Cyrups and Bifrost in the north, nine nations stand against one another.
+
+But the balance that had held for thousands of years began to crumble in the Empire of Gaysir, ruled by the Devils. Imperial Prince Styner, first in line to the throne of Gaysir and called the Black Prince, wielding dark magic far beyond other Devils and brilliant strategy, brought the neighbouring nations to heel, forged the loose Grimma alliance into one vast empire, and raising Gaysir's Black Armor banner far and wide, began a war to unite Antaria.
+
+Threatened by Gaysir's moves, Pandragon gathered the Crusaders, a joint army of three Esprit nations, under its Silver Arrow banner, and with Gaysir's invasion of Cyrups the two powers met head-on for the first time in centuries. The Crusaders, sent as a relief army to Cyrups, were driven back by an Imperial army far stronger than expected, and by the time Pandragon was debating more troops, Cyrups and the Crusaders sent there had been all but destroyed. What saved them was not Pandragon's relief army but, unexpectedly, a single dispatch from Gaysir.
+
+The sudden death of Emperor Karl, the Black Prince's father, could sow the seeds of a power struggle within Gaysir, and Styner had no choice but to rush home with his guard. While Styner restored order at home, the Crusaders struck back in Cyrups, and without him the remaining Gaysir army suffered heavy losses. By the time Styner returned, it had lost some 40% of its strength and most of the land it had taken.
+
+Its spirit restored by Styner's return, the Gaysir army prepared for a decisive battle with the Crusaders, and at last the greatest battle in history was fought on the Grates Plain in Cyrups. This was the Great Battle of Grates, which changed the history of Antaria: the Crusaders suffered a defeat from which they could never recover, and most of the Esprit's leaders, Pandragon's king among them, left their bones there. Though outnumbered, Styner's army used a new tactic, the oblique order, breaking with the old square formations, and won a near-perfect victory.
+
+With the victory at Grates the Empire of Gaysir seized supremacy over Antaria, and the remnants of Pandragon, having lost most of their land, were driven into the northern mountains. But with the whole world before him, Imperial Prince Styner suddenly halted his advance and shut himself away in Gaysir's capital......
+
+~ Now, five years later,
+~     the flames of a new war rise again.

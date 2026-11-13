@@ -15,7 +15,6 @@ FILES.PAT, little-endian: "GPAT" u32 version(1) u32 nfiles, then per file:
   ops: u8 0 + u32 offset + u32 length (copy from the original) |
        u8 1 + u32 length + bytes (insert)
 """
-import difflib
 import shutil
 import struct
 import sys
@@ -49,20 +48,27 @@ def same_size_ops(a: bytes, b: bytes):
 def ops_for(a: bytes, b: bytes):
     if len(a) == len(b):
         return same_size_ops(a, b)
-    sm = difflib.SequenceMatcher(None, a, b, autojunk=False)
-    ops, pending = [], bytearray()
-    pos = 0
-    for blk in sm.get_matching_blocks():
-        if blk.b > pos:
-            pending += b[pos:blk.b]
-        if blk.size >= MIN_COPY:
-            if pending:
-                ops.append((1, bytes(pending)))
-                pending = bytearray()
-            ops.append((0, blk.a, blk.size))
-        else:
-            pending += b[blk.b:blk.b + blk.size]
-        pos = blk.b + blk.size
+    # Greedy block matcher: index every K-byte window of the original, then
+    # walk the new file extending matches (linear, unlike difflib).
+    K = 12
+    index = {}
+    for i in range(len(a) - K + 1):
+        index.setdefault(a[i:i + K], i)
+    ops, pending, i = [], bytearray(), 0
+    while i < len(b):
+        j = index.get(b[i:i + K]) if i + K <= len(b) else None
+        if j is None:
+            pending.append(b[i])
+            i += 1
+            continue
+        n = K
+        while i + n < len(b) and j + n < len(a) and a[j + n] == b[i + n]:
+            n += 1
+        if pending:
+            ops.append((1, bytes(pending)))
+            pending = bytearray()
+        ops.append((0, j, n))
+        i += n
     if pending:
         ops.append((1, bytes(pending)))
     return ops

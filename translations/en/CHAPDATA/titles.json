@@ -1,0 +1,16 @@
+[
+ {"file": "PERIOD0.VSP", "ko": "王國의 遺産 (왕국의 유산)", "en": "Legacy of the Kingdom"},
+ {"file": "PERIOD1.VSP", "ko": "커티스의 勇士들 (용사들)", "en": "The Heroes of Cutis"},
+ {"file": "PERIOD2.VSP", "ko": "太陽의 神殿 (태양의 신전)", "en": "Temple of the Sun"},
+ {"file": "PERIOD3.VSP", "ko": "사이럽스의 女盜 (여도)", "en": "The Thief of Cyrups"},
+ {"file": "PERIOD4.VSP", "ko": "실버 애로우", "en": "Silver Arrow"},
+ {"file": "PERIOD5.VSP", "ko": "帝國遠征 (제국원정)", "en": "March on the Empire"},
+ {"file": "PERIOD6.VSP", "ko": "風雲의 密使 (풍운의 밀사)", "en": "Envoy of the Storm"},
+ {"file": "PERIOD7.VSP", "ko": "砂漠風 (사막풍)", "en": "Desert Wind"},
+ {"file": "PERIOD8.VSP", "ko": "航路開拓 (항로개척)", "en": "Charting the Seas"},
+ {"file": "PERIOD9.VSP", "ko": "聖劍探索 (성검탐색)", "en": "Quest for the Holy Sword"},
+ {"file": "PERIOD10.VSP", "ko": "블루시드", "en": "Blueseed"},
+ {"file": "PERIOD11.VSP", "ko": "創世記戰 (창세기전)", "en": "The War of Genesis"},
+ {"file": "PERIOD12.VSP", "ko": "英雄戰爭 (영웅전쟁)", "en": "War of Heroes"},
+ {"file": "PERIOD13.VSP", "ko": "魔劍召喚 (마검소환)", "en": "Summoning the Demon Sword"}
+]
