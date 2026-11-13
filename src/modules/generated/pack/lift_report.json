@@ -1,8 +1,8 @@
 {
   "exe": "PACK.EXE",
-  "functions": 459,
-  "speculative": 8,
-  "instructions": 46839,
+  "functions": 460,
+  "speculative": 9,
+  "instructions": 46868,
   "unimplemented": {},
   "warnings": []
 }

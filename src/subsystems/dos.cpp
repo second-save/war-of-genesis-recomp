@@ -45,10 +45,12 @@ std::filesystem::path DosSubsystem::resolve_path(const std::string& dos_path) co
         clean = clean.substr(2);
     }
 
-    // Remove leading slashes
+    // Relative paths start in the current directory (INT 21h 3Bh).
+    bool absolute = !clean.empty() && clean[0] == '/';
     while (!clean.empty() && clean[0] == '/') {
         clean = clean.substr(1);
     }
+    if (!absolute && !cwd_.empty()) clean = cwd_ + "/" + clean;
 
     // Remove leading "./"
     while (clean.rfind("./", 0) == 0) {
@@ -64,7 +66,7 @@ std::filesystem::path DosSubsystem::resolve_path(const std::string& dos_path) co
         // DOS treats "NAME." as "NAME" (empty extension).
         if (part != ".." && part.size() > 1 && part.back() == '.') part.pop_back();
         if (part == "..") {
-            cur = cur.parent_path();
+            if (cur != base_dir_) cur = cur.parent_path();  // never above the game root
             continue;
         }
 
@@ -692,6 +694,18 @@ void DosSubsystem::handle_int21() {
         machine_.cpu.ax.b.l = static_cast<uint8_t>(last_exit_code_);
         machine_.cpu.ax.b.h = 0; // Normal exit
         break;
+    case 0x01: // Read character with echo
+    case 0x07: // Direct character input, no echo
+    case 0x08: // Character input, no echo
+    {
+        Cpu saved = machine_.cpu;
+        machine_.cpu.ax.b.h = 0x00;
+        machine_.input->handle_int16();  // waits for a key
+        uint8_t ch = machine_.cpu.ax.b.l;
+        machine_.cpu = saved;
+        machine_.cpu.ax.b.l = ch;
+        break;
+    }
     case 0x0B: // Check standard input status
         machine_.cpu.ax.b.l = machine_.input->key_available() ? 0xFF : 0x00;
         break;
@@ -735,11 +749,34 @@ void DosSubsystem::handle_int21() {
             machine_.cpu.cf = 0;
         }
         break;
-    case 0x47: // Get current directory (always the game root)
-        *machine_.ptr(machine_.cpu.ds, machine_.cpu.si.w) = 0;
+    case 0x47: // Get current directory (without drive or leading backslash)
+    {
+        std::string d = cwd_;
+        std::replace(d.begin(), d.end(), '/', '\\');
+        for (char& ch : d) ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+        uint32_t si = machine_.pm ? machine_.cpu.si.e : machine_.cpu.si.w;
+        std::memcpy(machine_.ptr(machine_.cpu.ds, si), d.c_str(), d.size() + 1);
         machine_.cpu.ax.w = 0x0100;
         machine_.cpu.cf = 0;
         break;
+    }
+    case 0x3B: // Change directory
+    {
+        std::string path = read_dos_string(machine_.cpu.ds, pdx());
+        std::filesystem::path target = resolve_path(path);
+        std::error_code ec;
+        if (std::filesystem::is_directory(target, ec)) {
+            std::filesystem::path rel = std::filesystem::relative(target, base_dir_, ec);
+            cwd_ = (ec || rel == ".") ? std::string() : rel.generic_string();
+            if (cwd_.rfind("..", 0) == 0) cwd_.clear();
+            machine_.cpu.cf = 0;
+            if (trace_files()) std::fprintf(stderr, "[FILE] chdir '%s' -> '\\%s'\n", path.c_str(), cwd_.c_str());
+        } else {
+            machine_.cpu.cf = 1;
+            machine_.cpu.ax.w = 3;  // path not found
+        }
+        break;
+    }
     case 0x4E: // Find first matching file
         find_first(read_dos_string(machine_.cpu.ds, pdx()), machine_.cpu.cx.w);
         break;

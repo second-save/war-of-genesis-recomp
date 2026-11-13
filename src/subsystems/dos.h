@@ -73,6 +73,7 @@ private:
     uint16_t dta_seg_ = 0;
     uint32_t dta_off_ = 0x80;
     int last_exit_code_ = 0;
+    std::string cwd_;  // current directory relative to the game root ('/'-separated, empty = root)
 
     // Allocated blocks, sorted by segment.
     std::vector<MemBlock> blocks_;

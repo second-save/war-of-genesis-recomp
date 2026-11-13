@@ -1,8 +1,8 @@
 {
   "exe": "CHRSYS.EXE",
-  "functions": 875,
-  "speculative": 66,
-  "instructions": 69415,
+  "functions": 880,
+  "speculative": 67,
+  "instructions": 69845,
   "unimplemented": {},
   "warnings": []
 }

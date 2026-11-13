@@ -109,6 +109,7 @@ void F_0000_29DF(Machine& m);
 void F_0000_2BE2(Machine& m);
 void F_0000_2D0B(Machine& m);
 void F_0000_2D0E(Machine& m);
+void F_0000_2E2B(Machine& m);
 void F_0000_2E6B(Machine& m);
 void F_0000_2E8D(Machine& m);
 void F_0000_2EAE(Machine& m);

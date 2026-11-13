@@ -1,8 +1,8 @@
 {
   "exe": "CHP.EXE",
-  "functions": 456,
-  "speculative": 12,
-  "instructions": 35318,
+  "functions": 457,
+  "speculative": 13,
+  "instructions": 35341,
   "unimplemented": {},
   "warnings": []
 }

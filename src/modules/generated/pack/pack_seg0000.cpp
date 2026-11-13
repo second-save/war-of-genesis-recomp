@@ -8671,6 +8671,68 @@ L_2E27:
     (void)pop16(m); c.cs = pop16(m); return;
 }
 
+void F_0000_2E2B(Machine& m) {
+    Cpu& c = m.cpu;
+    (void)c;
+    // 2E2B: push bp
+    push16(m, c.bp.w);
+    // 2E2C: mov bp, sp
+    c.bp.w = (uint16_t)(c.sp.w);
+    // 2E2E: push si
+    push16(m, c.si.w);
+    // 2E2F: mov si, word ptr [bp + 8]
+    c.si.w = (uint16_t)(rd16(m, c.ss, (uint16_t)(c.bp.w + 0x8)));
+    // 2E32: push si
+    push16(m, c.si.w);
+    // 2E33: push word ptr [bp + 0xc]
+    push16(m, rd16(m, c.ss, (uint16_t)(c.bp.w + 0xC)));
+    // 2E36: push word ptr [bp + 0xa]
+    push16(m, rd16(m, c.ss, (uint16_t)(c.bp.w + 0xA)));
+    // 2E39: les bx, ptr [bp + 4]
+    { uint16_t o = rd16(m, c.ss, (uint16_t)(c.bp.w + 0x4)); uint16_t s = rd16(m, c.ss, (uint16_t)(c.bp.w + 0x6)); c.bx.w = (uint16_t)(o); c.es = s; }
+    // 2E3C: push word ptr es:[bx + 2]
+    push16(m, rd16(m, c.es, (uint16_t)(c.bx.w + 0x2)));
+    // 2E40: push word ptr es:[bx]
+    push16(m, rd16(m, c.es, (uint16_t)(c.bx.w)));
+    // 2E43: nop
+    // 2E44: push cs
+    push16(m, c.cs);
+    // 2E45: call 0x253a
+    push16(m, 0x2E48); F_0000_253A(m);
+    // 2E48: add sp, 0xa
+    { uint16_t t = op_add<uint16_t>(c, c.sp.w, (uint16_t)0xAu); c.sp.w = (uint16_t)(t); }
+    // 2E4B: les bx, ptr [bp + 4]
+    { uint16_t o = rd16(m, c.ss, (uint16_t)(c.bp.w + 0x4)); uint16_t s = rd16(m, c.ss, (uint16_t)(c.bp.w + 0x6)); c.bx.w = (uint16_t)(o); c.es = s; }
+    // 2E4E: add word ptr es:[bx], si
+    { uint16_t t = op_add<uint16_t>(c, rd16(m, c.es, (uint16_t)(c.bx.w)), c.si.w); wr16(m, c.es, (uint16_t)(c.bx.w), (uint16_t)(t)); }
+    // 2E51: push bx
+    push16(m, c.bx.w);
+    // 2E52: push es
+    push16(m, c.es);
+    // 2E53: mov es, word ptr es:[bx + 2]
+    c.es = (uint16_t)(rd16(m, c.es, (uint16_t)(c.bx.w + 0x2)));
+    // 2E57: mov ax, es
+    c.ax.w = (uint16_t)(c.es);
+    // 2E59: pop es
+    { uint16_t t = pop16(m); c.es = (uint16_t)(t); }
+    // 2E5A: pop bx
+    { uint16_t t = pop16(m); c.bx.w = (uint16_t)(t); }
+    // 2E5B: mov bx, word ptr es:[bx]
+    c.bx.w = (uint16_t)(rd16(m, c.es, (uint16_t)(c.bx.w)));
+    // 2E5E: mov es, ax
+    c.es = (uint16_t)(c.ax.w);
+    // 2E60: mov byte ptr es:[bx], 0
+    wr8(m, c.es, (uint16_t)(c.bx.w), (uint8_t)((uint8_t)0x0u));
+    // 2E64: mov ax, si
+    c.ax.w = (uint16_t)(c.si.w);
+    // 2E66: pop si
+    { uint16_t t = pop16(m); c.si.w = (uint16_t)(t); }
+    // 2E67: pop bp
+    { uint16_t t = pop16(m); c.bp.w = (uint16_t)(t); }
+    // 2E68: ret 0xa
+    (void)pop16(m); c.sp.w = (uint16_t)(c.sp.w + 0xA); return;
+}
+
 void F_0000_2E6B(Machine& m) {
     Cpu& c = m.cpu;
     (void)c;

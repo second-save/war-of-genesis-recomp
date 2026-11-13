@@ -2,6 +2,7 @@
 #include "runtime/machine.h"
 #include "runtime/settings.h"
 #include <fstream>
+#include <iterator>
 #include "subsystems/video.h"
 #include "subsystems/audio.h"
 #include "subsystems/dos.h"
@@ -50,9 +51,10 @@ Uint32 scripted_input_tick(Uint32 interval, void*) {
         const std::string w = g_script[g_script_pos++].what;  // copy: schedule_release may reallocate
         if (std::getenv("GENESIS_TRACE_SCRIPT")) std::fprintf(stderr, "[SCRIPT] t=%u %s (%zu/%zu)\n", now, w.c_str(), g_script_pos, g_script.size());
         SDL_Event ev{};
-        if (w.rfind("click@", 0) == 0) {
+        if (w.rfind("click@", 0) == 0 || w.rfind("rclick@", 0) == 0) {
+            bool right = w[0] == 'r';
             int x = 0, y = 0;
-            std::sscanf(w.c_str() + 6, "%d,%d", &x, &y);
+            std::sscanf(w.c_str() + (right ? 7 : 6), "%d,%d", &x, &y);
             ev.type = SDL_MOUSEMOTION;
             // Window coordinates for game-screen pixel (x, y); SDL maps them back to
             // screen pixels like real events (the window must be at its default 2x size).
@@ -62,17 +64,17 @@ Uint32 scripted_input_tick(Uint32 interval, void*) {
             SDL_PushEvent(&ev);
             ev = SDL_Event{};
             ev.type = SDL_MOUSEBUTTONDOWN;
-            ev.button.button = SDL_BUTTON_LEFT;
+            ev.button.button = right ? SDL_BUTTON_RIGHT : SDL_BUTTON_LEFT;
             ev.button.windowID = wid;
             ev.button.x = x; ev.button.y = y;
             int pushed = SDL_PushEvent(&ev);
             std::fprintf(stderr, "[INPUT] t=%u click %d,%d%s\n", now, x, y, pushed == 1 ? "" : " (push failed)");
-            schedule_release(now, "~mouseup");
+            schedule_release(now, right ? "~rmouseup" : "~mouseup");
             continue;
         }
-        if (w == "~mouseup") {
+        if (w == "~mouseup" || w == "~rmouseup") {
             ev.type = SDL_MOUSEBUTTONUP;
-            ev.button.button = SDL_BUTTON_LEFT;
+            ev.button.button = (w == "~rmouseup") ? SDL_BUTTON_RIGHT : SDL_BUTTON_LEFT;
             SDL_PushEvent(&ev);
             continue;
         }
@@ -150,6 +152,7 @@ int main(int argc, char* argv[]) {
     std::string cmd_args = "";
 
     bool skip_boot = false;
+    int battle = -1;
 
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
@@ -159,6 +162,11 @@ int main(int argc, char* argv[]) {
             module_to_run = argv[++i];
         } else if (arg == "--args" && i + 1 < argc) {
             cmd_args = argv[++i];
+        } else if (arg == "--battle" && i + 1 < argc) {
+            // Debug: start CHRSYS on battle N the way MAIN does
+            // (spawnl("chrsys.exe", <16-byte name from BATTLE.IDX record N>, "hacker")).
+            battle = std::atoi(argv[++i]);
+            module_to_run = "chrsys";
         } else if (arg == "--skip-boot") {
             skip_boot = true;
         }
@@ -214,6 +222,21 @@ int main(int argc, char* argv[]) {
         std::ofstream(data_dir / "CSTLDATA" / "PASS") << "";
     }
 
+    if (battle >= 0) {
+        std::ifstream idx(machine.dos->resolve_path("BATTLE.IDX"), std::ios::binary);
+        std::vector<char> d((std::istreambuf_iterator<char>(idx)), std::istreambuf_iterator<char>());
+        if (static_cast<size_t>(2 * battle + 2) > d.size()) {
+            std::cerr << "[ERR] No battle " << battle << " in BATTLE.IDX\n";
+            return 1;
+        }
+        size_t off = static_cast<uint8_t>(d[2 * battle]) | (static_cast<uint8_t>(d[2 * battle + 1]) << 8);
+        std::string name;
+        // Names are stored with every byte doubled; MAIN halves them (0259:0008).
+        for (size_t k = off + 1; k < off + 17 && k < d.size() && d[k]; ++k)
+            name += static_cast<char>(static_cast<uint8_t>(d[k]) >> 1);
+        std::cout << "[INFO] Battle " << battle << ": " << name << "\n";
+        cmd_args = " " + name + " hacker";
+    }
     std::cout << "[INFO] Loading recompiled module: " << module_to_run << "\n";
     if (module_to_run == "ttl") {
         exit_code = machine.run_le(&gen::kLifted_ttl, cmd_args);

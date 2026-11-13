@@ -12,8 +12,10 @@ game; point the port at its folder.
 ## Status
 
 Playable from the original title screen: title music, Softmax logo voice, the
-real title menu, New Game → prologue → world map → towns. Battles, the
-character screens (CHRSYS), save/load and the ending are still being tested.
+real title menu, New Game → prologue → world map → towns; saving from the map
+menu and loading from the title menu; battles start (briefing, deployment,
+battle map, music). Full battles, the ending and later chapters are still
+being tested.
 
 | Original program | What it does | Translated by |
 |---|---|---|
@@ -74,6 +76,7 @@ These are environment variables:
 | `GENESIS_INPUT="ms:Key;ms:click@x,y;…"` | scripted input (x,y in game-screen pixels) |
 | `GENESIS_WAV=file` | dump rendered audio (raw s16le stereo 44.1 kHz) |
 | `GENESIS_SETTINGS=file` | use another settings file |
+| `--battle N` (argument) | start CHRSYS on battle N of BATTLE.IDX, as MAIN would |
 | `GENESIS_TRACE_{DOS,FILES,ALLOC,INT,IRQ,MOUSE,DPMI,SB,OPL,PORTS}` | subsystem traces |
 | `GENESIS_WATCH=lo-hi` | log writes to a linear memory range |
 

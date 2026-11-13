@@ -281,6 +281,7 @@ void F_139E_000D(Machine& m);
 void F_139E_03AC(Machine& m);
 void F_13DA_0005(Machine& m);
 void F_13DA_01EF(Machine& m);
+void F_140B_0004(Machine& m);
 void F_140B_0159(Machine& m);
 void F_140B_020F(Machine& m);
 void F_140B_022D(Machine& m);

@@ -313,6 +313,8 @@ class Lifter:
                 changed = True
             if not changed:
                 changed = self.add_speculative_far_pointers()
+            if not changed:
+                changed = self.add_immediate_callbacks()
         # Final pass: build bodies, splitting at function boundaries.
         for fn in self.functions.values():
             self.explore(fn, stop_at_functions=True)
@@ -352,6 +354,38 @@ class Lifter:
                                 break
                 if prev_ok and base_mnemonic(insn) in ("push", "enter", "mov", "sub", "xor", "cli", "cld"):
                     added |= self.add_function(seg, off, speculative=True)
+        return added
+
+    def add_immediate_callbacks(self) -> bool:
+        """Near code pointers loaded as immediates (`mov ax, offset fn`), e.g. the
+        output callbacks Borland's printf family hands to __vprinter. Accepted only
+        when the target starts a function: right after a return, `push bp; mov bp, sp`."""
+        added = False
+        for fn in list(self.functions.values()):
+            for insn in fn.body.values():
+                if insn is None or isinstance(insn, _FpuEmu) or base_mnemonic(insn) != "mov":
+                    continue
+                ops = insn.operands
+                if len(ops) != 2 or ops[0].type != X86_OP_REG or ops[1].type != X86_OP_IMM or ops[0].size != 2:
+                    continue
+                if self.is_reloc_word(fn.seg, insn, insn.size - 2):
+                    continue
+                t = ops[1].imm & 0xFFFF
+                if t < 2 or (fn.seg * 16 + t) in self.functions:
+                    continue
+                a = self.decode(fn.seg, t)
+                b = self.decode(fn.seg, t + 1) if a is not None else None
+                if a is None or b is None or base_mnemonic(a) != "push" or a.op_str != "bp" \
+                        or base_mnemonic(b) != "mov" or b.op_str != "bp, sp":
+                    continue
+                prev_ok = False
+                for back in range(1, 4):
+                    p = self.decode(fn.seg, t - back)
+                    if p is not None and p.size == back and base_mnemonic(p) in ("ret", "retf", "iret"):
+                        prev_ok = True
+                        break
+                if prev_ok:
+                    added |= self.add_function(fn.seg, t, speculative=True)
         return added
 
     def discover_borland_tables(self):
