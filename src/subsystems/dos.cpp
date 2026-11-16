@@ -694,7 +694,12 @@ void DosSubsystem::handle_int21() {
                 break;
             }
         }
-        machine_.exec_module(prog, cmd_args);
+        {
+            // spawn*() reads the child's exit code with AH=4Dh afterwards: MAIN
+            // decides where to go next (town, battle, quit) from CHP's code.
+            int code = machine_.exec_module(prog, cmd_args);
+            if (code >= 0) last_exit_code_ = code;
+        }
         break;
     }
     case 0x4C: // Terminate Process
