@@ -11,3 +11,7 @@ work/
 lang/
 dist/
 release/cache/
+# Agent skills installed per project (installed globally instead)
+.agents/
+.claude/
+skills-lock.json

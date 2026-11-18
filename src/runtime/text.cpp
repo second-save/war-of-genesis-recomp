@@ -20,6 +20,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -413,7 +414,10 @@ static void lib_draw_string(Machine& m, FunctionPointer original, const LibText&
         for (int r = 0; r < 16; ++r)
             wr8(m, ds, static_cast<uint16_t>(L.glyph + r),
                 static_cast<uint8_t>(rd8(m, ds, static_cast<uint16_t>(L.font + ch * 16 + r)) << first));
-        wr16(m, ds, L.desc, static_cast<uint16_t>(adv - 1));  // stored as width - 1
+        // Stored as width - 1. The bitmap is one byte per row, so a glyph using all
+        // 8 columns (advance 9) keeps an 8 px box: a 9 px box makes the helper
+        // read 2 bytes per row and scrambles the glyph (the "T" of "Time Interval").
+        wr16(m, ds, L.desc, static_cast<uint16_t>(std::min(adv, 8) - 1));
         call(L.draw, {static_cast<uint16_t>(x), static_cast<uint16_t>(y), L.desc, ds});
         x += adv;
     }

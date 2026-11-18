@@ -72,6 +72,10 @@ its hint files (`tools/lifter/hints/*.json`).
   pointer (Shift = faster), **Return/Z** left-click, **X/Backspace**
   right-click. Other keys go to the game as usual (Space skips story text).
 - **F11** or **Alt+Enter**: fullscreen. **Cmd+Q** / **Alt+F4**: quit.
+- Battles: right-click opens the next unit's command ring, Space ends the
+  turn, Esc opens the battle options. The full battle guide (worked out from
+  the game's code, as the manual is lost) is in
+  [`release/README-player.txt`](release/README-player.txt).
 
 The settings file (game folder, key bindings, volumes, language, fullscreen)
 is created on first launch, next to the installed `game/` folder:
@@ -121,7 +125,9 @@ English by `tools/gfx/`: the chapter title cards (`titles.py`, committed as
 `translations/en/CHAPDATA/PERIOD*.VSP`), the character gallery pages
 (`ttl_pages.py`), the "Story" scroll (`story_scroll.py`) and the staff names
 in the ending credits (`ttl_staff.py`, romanised; needs the Copperplate font
-that ships with macOS, otherwise the names stay in Hangul). The Hangul in the
+that ships with macOS, otherwise the names stay in Hangul) and the battle
+technique icons, single Hanja in the original (`special_icons.py`, built-in
+pixel font). The Hangul in the
 title logo and the publisher's logo is part of the artwork and stays.
 `tools/gfx/spr.py` reads and writes Softmax's sprite formats.
 
@@ -132,7 +138,7 @@ These are environment variables:
 | Variable | Effect |
 |---|---|
 | `GENESIS_SHOT=dir` | screenshot every 2 s |
-| `GENESIS_INPUT="ms:Key;ms:click@x,y;…"` | scripted input (x,y in game-screen pixels) |
+| `GENESIS_INPUT="ms:Key;ms:click@x,y;…"` | scripted input: keys, `click@`, `rclick@`, `move@` (hover only); x,y in game-screen pixels |
 | `GENESIS_WAV=file` | dump rendered audio (raw s16le stereo 44.1 kHz) |
 | `GENESIS_SETTINGS=file` | use another settings file |
 | `--battle N` (argument) | start CHRSYS on battle N of BATTLE.IDX, as MAIN would |

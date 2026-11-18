@@ -28,7 +28,8 @@ extern const LiftedModule32 kLifted_ttl;
 
 // Debug: GENESIS_INPUT="ms:Key;ms:Key;..." injects key presses (SDL key names, e.g.
 // Return, Down, Escape, Space) at the given milliseconds after startup. Also accepts
-// "ms:click@x,y" (640x480 game coordinates, left button). Used for headless testing.
+// "ms:click@x,y" / "ms:rclick@x,y" (game-screen pixels) and "ms:move@x,y" (pointer only,
+// to hover before a click). Used for headless testing.
 #include <sstream>
 #include <vector>
 namespace {
@@ -71,6 +72,15 @@ Uint32 scripted_input_tick(Uint32 interval, void*) {
             int pushed = SDL_PushEvent(&ev);
             std::fprintf(stderr, "[INPUT] t=%u click %d,%d%s\n", now, x, y, pushed == 1 ? "" : " (push failed)");
             schedule_release(now, right ? "~rmouseup" : "~mouseup");
+            continue;
+        }
+        if (w.rfind("move@", 0) == 0) {  // pointer motion only (hover before a click)
+            int x = 0, y = 0;
+            std::sscanf(w.c_str() + 5, "%d,%d", &x, &y);
+            ev.type = SDL_MOUSEMOTION;
+            ev.motion.windowID = g_machine_window ? SDL_GetWindowID(g_machine_window) : 0;
+            ev.motion.x = x; ev.motion.y = y;
+            SDL_PushEvent(&ev);
             continue;
         }
         if (w == "~mouseup" || w == "~rmouseup") {
